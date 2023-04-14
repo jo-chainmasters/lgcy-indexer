@@ -1,6 +1,6 @@
 ## Description
 
-[SuperNest](https://github.com/nestjs/nest) is a Blockchain indexer for the LGCY Blockchain. It parses the blocks starting by 0 and stores all data in a MongoDB.
+[LGCY Indexer](https://github.com/jo-chainmasters/lgcy-indexer) is a Blockchain indexer for the LGCY Blockchain. It parses the blocks starting by 0 and stores all data in a MongoDB.
 
 ## Installation
 
