@@ -19,6 +19,8 @@ export class TransactionController {
       params.address,
       query.first,
       query.rows,
+      query.sortField,
+      query.sortOrder,
     );
     return transactions;
   }

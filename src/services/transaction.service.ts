@@ -658,7 +658,13 @@ export class TransactionService {
     return txInfo;
   }
 
-  public async getPage(address: string, skip: number, pageSize: number) {
+  public async getPage(
+    address: string,
+    skip: number,
+    pageSize: number,
+    sortField: string,
+    sortOrder: number,
+  ) {
     this.logger.debug(
       'transactions.getPage: address: ' +
         address +
@@ -673,11 +679,15 @@ export class TransactionService {
       .count({ $or: [{ sender: address }, { receiver: address }] })
       .exec();
 
+    const sort = {};
+    sort[sortField] = sortOrder;
+
     const transactions = await this.transactionModel
       .find({
         $or: [{ sender: address }, { receiver: address }],
       })
       .skip(skip)
+      .sort(sort)
       .limit(pageSize)
       .exec();
 
