@@ -13,8 +13,8 @@ import { AccountController } from './controllers/AccountController';
 import { TransactionController } from './controllers/TransactionController';
 import { TransactionInfoSyncerService } from './jobs/transaction-info-syncer.service';
 import { HttpModule } from '@nestjs/axios';
-import { DashboardController } from './controllers/DashboardController';
-import { DashboardService } from './services/DashboardService';
+import { DashboardController } from "./controllers/DashboardController";
+import { DashboardService } from "./services/DashboardService";
 
 @Module({
   imports: [

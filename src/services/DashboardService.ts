@@ -100,8 +100,10 @@ export class DashboardService {
     let dateEnd = new Date(from);
     dateEnd.setHours(23, 59, 59, 999);
 
+
     const millisSevenDays = 24 * 60 * 60 * 1000;
     for (let i = 0; i <= count - 1; i++) {
+
       // this.logger.debug('Start: ' + dateStart.toISOString() + ' End: ' + dateEnd.toISOString());
       const result = await this.transactionService.countTransactionsTimeRange(
         dateStart,
