@@ -524,6 +524,18 @@ export class TransactionService {
       .exec();
   }
 
+  public async countTransactions() {
+    return this.transactionModel.count().exec();
+  }
+
+  public async countTransactionsTimeRange(from: Date, to: Date) {
+    return this.transactionModel
+      .count({
+        timestamp: { $gte: from, $lt: to },
+      })
+      .exec();
+  }
+
   public async getTransactionInfoFromChain(transaction: Transaction) {
     const transactionInfo = await this.lgcyService.getTransactionInfoFromHttp(
       transaction.hash,
@@ -665,16 +677,6 @@ export class TransactionService {
     sortField: string,
     sortOrder: number,
   ) {
-    this.logger.debug(
-      'transactions.getPage: address: ' +
-        address +
-        ', skip: ' +
-        skip +
-        ', pageSize: ' +
-        pageSize,
-    );
-    this.logger.debug('skip: ' + skip);
-
     const totalRecords = await this.transactionModel
       .count({ $or: [{ sender: address }, { receiver: address }] })
       .exec();

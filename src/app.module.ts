@@ -13,6 +13,8 @@ import { AccountController } from './controllers/AccountController';
 import { TransactionController } from './controllers/TransactionController';
 import { TransactionInfoSyncerService } from './jobs/transaction-info-syncer.service';
 import { HttpModule } from '@nestjs/axios';
+import { DashboardController } from './controllers/DashboardController';
+import { DashboardService } from './services/DashboardService';
 
 @Module({
   imports: [
@@ -24,7 +26,12 @@ import { HttpModule } from '@nestjs/axios';
     ]),
     HttpModule,
   ],
-  controllers: [AppController, AccountController, TransactionController],
+  controllers: [
+    AppController,
+    AccountController,
+    TransactionController,
+    DashboardController,
+  ],
   providers: [
     AppService,
     BlockSyncerService,
@@ -32,6 +39,7 @@ import { HttpModule } from '@nestjs/axios';
     LgcyService,
     BlockService,
     TransactionService,
+    DashboardService,
   ],
 })
 export class AppModule {}
