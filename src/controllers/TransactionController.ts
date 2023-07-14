@@ -7,7 +7,7 @@ export class TransactionController {
 
   constructor(private transactionService: TransactionService) {}
 
-  @Get(':address')
+  @Get('byAddress/:address')
   public async getTransactionPage(@Param() params, @Query() query) {
     const transactions = await this.transactionService.getPage(
       params.address,
@@ -17,5 +17,10 @@ export class TransactionController {
       query.sortOrder,
     );
     return transactions;
+  }
+
+  @Get('byHash/:hash')
+  public async getTransaction(@Param() params) {
+    return await this.transactionService.findByHash(params.hash);
   }
 }

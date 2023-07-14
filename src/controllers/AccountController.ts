@@ -1,15 +1,12 @@
 import { Controller, Get, Param } from '@nestjs/common';
-import { TransactionService } from '../services/transaction.service';
+import { AccountService } from '../services/AccountService';
 
 @Controller('account')
 export class AccountController {
-  constructor(private transactionService: TransactionService) {}
+  constructor(private accountService: AccountService) {}
 
   @Get(':address')
   public async getAccount(@Param() params) {
-    const transactions = await this.transactionService.findByAddress(
-      params.address,
-    );
-    return { transactions };
+    return await this.accountService.getAccountProjection(params.address);
   }
 }

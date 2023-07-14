@@ -1,11 +1,11 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DashboardData } from '../model/DashboardData';
+import { DashboardData } from '../model/projections/DashboardData';
 import { BlockService } from './block.service';
 import { TransactionService } from './transaction.service';
 
 @Injectable()
 export class DashboardService {
-  private readonly logger = new Logger(TransactionService.name);
+  private readonly logger = new Logger(DashboardService.name);
 
   constructor(
     private blockService: BlockService,

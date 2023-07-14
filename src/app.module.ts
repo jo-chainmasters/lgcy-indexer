@@ -13,8 +13,14 @@ import { AccountController } from './controllers/AccountController';
 import { TransactionController } from './controllers/TransactionController';
 import { TransactionInfoSyncerService } from './jobs/transaction-info-syncer.service';
 import { HttpModule } from '@nestjs/axios';
-import { DashboardController } from "./controllers/DashboardController";
-import { DashboardService } from "./services/DashboardService";
+import { DashboardController } from './controllers/DashboardController';
+import { DashboardService } from './services/DashboardService';
+import { AccountService } from './services/AccountService';
+import { SmartContractParserService } from './jobs/smart-contract-parser.service';
+import { SmartContract, SmartContractSchema } from './schemas/SmartContract';
+import { SmartContractService } from './services/SmartContractService';
+import { SmartContractController } from './controllers/SmartContractController';
+import { DebugJobService } from "./jobs/DebugJob.service";
 
 @Module({
   imports: [
@@ -23,6 +29,7 @@ import { DashboardService } from "./services/DashboardService";
     MongooseModule.forFeature([
       { name: Block.name, schema: BlockSchema },
       { name: Transaction.name, schema: TransactionSchema },
+      { name: SmartContract.name, schema: SmartContractSchema },
     ]),
     HttpModule,
   ],
@@ -31,6 +38,7 @@ import { DashboardService } from "./services/DashboardService";
     AccountController,
     TransactionController,
     DashboardController,
+    SmartContractController,
   ],
   providers: [
     AppService,
@@ -40,6 +48,10 @@ import { DashboardService } from "./services/DashboardService";
     BlockService,
     TransactionService,
     DashboardService,
+    AccountService,
+    SmartContractParserService,
+    SmartContractService,
+    DebugJobService,
   ],
 })
 export class AppModule {}

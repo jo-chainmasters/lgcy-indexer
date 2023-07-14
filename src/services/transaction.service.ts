@@ -74,9 +74,6 @@ export class TransactionService {
   ): Transaction {
     // this.logger.debug(transaction);
     const t: Transaction = {
-      parserInfo: {
-        transactionInfo: false,
-      },
       hash: transaction.txID as string,
       blockNumber,
       timestamp,
@@ -485,20 +482,27 @@ export class TransactionService {
     await this.transactionModel.insertMany(transactions);
   }
 
+  public async setParserInfo(
+    transaction: Transaction,
+    name: string,
+    value: boolean,
+  ) {
+    if(!transaction.parserInfo) {
+      transaction.parserInfo = {};
+    }
+    transaction.parserInfo[name] = value;
+
+    await this.transactionModel.updateOne(
+      { hash: transaction.hash },
+      transaction,
+    );
+  }
+
   public async updateAll(transactions: Transaction[]): Promise<void> {
     for (const transaction of transactions) {
       const t = await this.transactionModel.updateOne(
         { hash: transaction.hash },
-        {
-          $set: {
-            parserInfo: {
-              transactionInfo: transaction.parserInfo.transactionInfo,
-            },
-            fee: transaction.fee,
-            successfull: transaction.successfull,
-            transactionInfo: transaction.transactionInfo,
-          },
-        },
+        transaction,
       );
       const i = 0;
     }
@@ -517,7 +521,33 @@ export class TransactionService {
   public async findWithoutTransactionInfo(num = 10) {
     return await this.transactionModel
       .find({
-        'parserInfo.transactionInfo': false,
+        $or: [
+          {
+            'parserInfo.transactionInfo': false,
+          },
+          {
+            'parserInfo.transactionInfo': { $exists: false },
+          },
+        ],
+      })
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+  }
+
+  public async findWithoutCreateSmartContractAnalyzing(num = 10) {
+    return await this.transactionModel
+      .find({
+        type: 'CreateSmartContract',
+        'parserInfo.transactionInfo': true,
+        $or: [
+          {
+            'parserInfo.smartContractRecorded': false,
+          },
+          {
+            'parserInfo.smartContractRecorded': { $exists: false },
+          },
+        ],
       })
       .sort({ blockNumber: 1 })
       .limit(num)

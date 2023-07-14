@@ -6,3 +6,9 @@ export enum EntryType {
   Fallback = 4,
   UNRECOGNIZED = -1,
 }
+
+export namespace EntryType {
+  export function valueOf(str: string) {
+    return EntryType[str as keyof typeof EntryType];
+  }
+}

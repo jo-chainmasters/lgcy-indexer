@@ -6,7 +6,6 @@ import { ParserInfo } from './ParserInfo';
 
 export type TransactionSchema = HydratedDocument<Transaction>;
 
-@Schema()
 export class TransactionValue {}
 
 @Schema()
@@ -31,7 +30,7 @@ export class Transaction {
   amount?: OrigSchema.Types.Decimal128;
 
   @Prop({ type: ParserInfo })
-  parserInfo: ParserInfo;
+  parserInfo?: ParserInfo;
 
   @Prop()
   fee?: number;
