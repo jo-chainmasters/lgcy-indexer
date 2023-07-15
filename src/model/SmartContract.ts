@@ -9,6 +9,7 @@ export class InternalMetaData {
 
 export class Abi {
   functions?: SmartContractFunction;
+  events?: SmartContractFunction;
 }
 
 export interface SmartContractFunction {
@@ -16,8 +17,9 @@ export interface SmartContractFunction {
 }
 
 export interface SmartContractParamData {
-  stateMutability: string;
+  stateMutability?: string;
   inputParams?: SmartContractParam;
+  outputParams?: { type: string; indexed: boolean }[];
 }
 
 export interface SmartContractParam {

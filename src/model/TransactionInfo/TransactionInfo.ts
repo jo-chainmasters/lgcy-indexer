@@ -1,10 +1,9 @@
-import { Prop, Schema } from '@nestjs/mongoose';
-import { TransactionSuccessCode } from '../enums/TransactionSuccessCode';
 import { Schema as OrigSchema } from 'mongoose';
 import { ResourceReceipt } from './ResourceReceipt';
 import { InternalTransaction } from './InternalTransaction';
 import { Log } from './Log';
 import { MarketOrderDetails } from './MarketOrderDetails';
+import { TransactionSuccessCode } from '../TransactionSuccessCode';
 
 export class TransactionInfo {
   contractResult?: string[];

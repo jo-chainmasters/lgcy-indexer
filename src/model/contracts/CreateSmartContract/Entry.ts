@@ -1,5 +1,5 @@
-import { EntryType } from '../../enums/EntryType';
-import { StateMutabilityType } from '../../enums/StateMutabilityType';
+import { EntryType } from '../../EntryType';
+import { StateMutabilityType } from '../../StateMutabilityType';
 
 import { InOutput } from './InOutput';
 
@@ -7,8 +7,8 @@ export class Entry {
   anonymous: boolean;
   constant: boolean;
   name: string;
-  inputs: InOutput[];
-  outputs: InOutput[];
+  inputs?: InOutput[];
+  outputs?: InOutput[];
   type: EntryType;
   payable: boolean;
   stateMutability: StateMutabilityType;

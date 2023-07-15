@@ -1,5 +1,5 @@
-import { PermissionType } from '../../enums/PermissionType';
 import { Key } from './Key';
+import { PermissionType } from '../../PermissionType';
 
 export class Permission {
   type: PermissionType;

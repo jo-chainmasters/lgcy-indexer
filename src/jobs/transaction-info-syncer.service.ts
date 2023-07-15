@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
 import { Cron, CronExpression } from '@nestjs/schedule';
 
-import { TransactionType } from '../schemas/enums/TransactionType';
+import { TransactionType } from '../model/TransactionType';
 
 @Injectable()
 export class TransactionInfoSyncerService {

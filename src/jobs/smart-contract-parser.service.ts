@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { TransactionService } from '../services/transaction.service';
 import { SmartContractService } from '../services/SmartContractService';
-import { SmartContract } from '../schemas/SmartContract';
+import { SmartContract } from '../model/SmartContract';
 
 @Injectable()
 export class SmartContractParserService {

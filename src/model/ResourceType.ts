@@ -6,6 +6,6 @@ export enum ResourceType {
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace ResourceType {
   export function valueOf(str: string) {
-    return ResourceType[str as keyof typeof ResourceType];
+    return ResourceType[str as keyof typeof ResourceType] as ResourceType;
   }
 }

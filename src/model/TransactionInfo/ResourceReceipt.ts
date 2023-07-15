@@ -1,4 +1,4 @@
-import { ContractResult } from '../enums/ContractResult';
+import { ContractResult } from '../ContractResult';
 
 export class ResourceReceipt {
   kandyUsage: number;

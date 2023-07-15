@@ -1,31 +1,36 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { Transaction } from '../schemas/Transaction';
+import { Transaction } from '../model/Transaction';
 import { LgcyService } from './lgcy.service';
 import { TransactionSuccessCode } from '../model/TransactionSuccessCode';
-import { PermissionType } from '../schemas/enums/PermissionType';
-import { ResourceType } from '../schemas/enums/ResourceType';
-import { TransactionType } from '../schemas/enums/TransactionType';
-import { ContractResult } from '../schemas/enums/ContractResult';
-import { TransferAssetContract } from '../schemas/contracts/TransferAssetContract';
-import { WitnessCreateContract } from '../schemas/contracts/WitnessCreateContract';
-import { TriggerSmartContract } from '../schemas/contracts/TriggerSmartContract';
-import { AccountUpdateContract } from '../schemas/contracts/AccountUpdateContract';
-import { UpdateBrokerageContract } from '../schemas/contracts/UpdateBrokerageContract';
-import { UnfreezeBalanceContract } from '../schemas/contracts/UnfreezeBalanceContract';
-import { FreezeBalanceContract } from '../schemas/contracts/FreezeBalanceContract';
-import { CreateSmartContract } from '../schemas/contracts/CreateSmartContract/CreateSmartContract';
-import { VoteWitnessContract } from '../schemas/contracts/VoteWitnessContract/VoteWitnessContract';
-import { Vote } from '../schemas/contracts/VoteWitnessContract/Vote';
-import { ProposalCreateContract } from '../schemas/contracts/ProposalCreateContract';
-import { AssetIssueContract } from '../schemas/contracts/AssetIssueContract/AssetIssueContract';
-import { Permission } from '../schemas/contracts/common/Permission';
-import { Key } from '../schemas/contracts/common/Key';
-import { AccountPermissionUpdateContract } from '../schemas/contracts/AccountPermissionUpdateContract';
-import { TransactionInfo } from '../schemas/TransactionInfo/TransactionInfo';
-import { InternalTransaction } from '../schemas/TransactionInfo/InternalTransaction';
-import { Log } from '../schemas/TransactionInfo/Log';
+import { TransactionType } from '../model/TransactionType';
+import { ContractResult } from '../model/ContractResult';
+import { TransferAssetContract } from '../model/contracts/TransferAssetContract';
+import { WitnessCreateContract } from '../model/contracts/WitnessCreateContract';
+import { TriggerSmartContract } from '../model/contracts/TriggerSmartContract';
+import { AccountUpdateContract } from '../model/contracts/AccountUpdateContract';
+import { UpdateBrokerageContract } from '../model/contracts/UpdateBrokerageContract';
+import { UnfreezeBalanceContract } from '../model/contracts/UnfreezeBalanceContract';
+import { FreezeBalanceContract } from '../model/contracts/FreezeBalanceContract';
+import { CreateSmartContract } from '../model/contracts/CreateSmartContract/CreateSmartContract';
+import { VoteWitnessContract } from '../model/contracts/VoteWitnessContract/VoteWitnessContract';
+import { Vote } from '../model/contracts/VoteWitnessContract/Vote';
+import { ProposalCreateContract } from '../model/contracts/ProposalCreateContract';
+import { AssetIssueContract } from '../model/contracts/AssetIssueContract/AssetIssueContract';
+import { Permission } from '../model/contracts/common/Permission';
+import { Key } from '../model/contracts/common/Key';
+import { AccountPermissionUpdateContract } from '../model/contracts/AccountPermissionUpdateContract';
+import { TransactionInfo } from '../model/TransactionInfo/TransactionInfo';
+import { InternalTransaction } from '../model/TransactionInfo/InternalTransaction';
+import { Log } from '../model/TransactionInfo/Log';
+import { Abi } from '../model/contracts/CreateSmartContract/Abi';
+import { Entry } from '../model/contracts/CreateSmartContract/Entry';
+import { EntryType } from '../model/EntryType';
+import { StateMutabilityType } from '../model/StateMutabilityType';
+import { InOutput } from '../model/contracts/CreateSmartContract/InOutput';
+import { ResourceType } from '../model/ResourceType';
+import { PermissionType } from '../model/PermissionType';
 
 @Injectable()
 export class TransactionService {
@@ -35,7 +40,9 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private lgcyService: LgcyService,
-  ) {}
+  ) {
+    this.logger
+  }
 
   public isSuccessfull(transaction: any): boolean {
     if (!transaction) return false;
@@ -122,7 +129,7 @@ export class TransactionService {
         (t.transactionValue as FreezeBalanceContract) = {
           frozenBalance,
           frozenDuration,
-          resource: resource as ResourceType,
+          resource: resource,
           receiver: receiverAddress,
         };
         break;
@@ -131,7 +138,7 @@ export class TransactionService {
           this.mapUnfreezeBalanceContract(transaction);
         (t.transactionValue as UnfreezeBalanceContract) = {
           receiver: unfreezeReceiver,
-          resource: unfreezeResource as ResourceType,
+          resource: unfreezeResource,
         };
         break;
       case TransactionType.WitnessCreateContract:
@@ -322,7 +329,7 @@ export class TransactionService {
     let owner: Permission;
     if (oldOwner) {
       owner = {
-        type: PermissionType.valueOf(oldOwner.type) as PermissionType,
+        type: PermissionType.valueOf(oldOwner.type),
         id: oldOwner.id,
         permissionName: oldOwner.permission_ame,
         threshold: oldOwner.threshold,
@@ -463,8 +470,56 @@ export class TransactionService {
     const bytecode = contractValue.new_contract.bytecode;
     const consumeUserResourcePercent =
       contractValue.new_contract.consume_user_resource_percent;
-    const abi = contractValue.new_contract.abi;
+    const abi = this.mapAbi(contractValue.new_contract.abi);
     return { name, bytecode, consumeUserResourcePercent, abi };
+  }
+
+  private mapAbi(abi: any): Abi {
+    if (abi?.entrys) {
+      const entries: Entry[] = [];
+      for (const entry of abi.entrys as []) {
+        entries.push(this.mapEntry(entry));
+      }
+      return {
+        entrys: entries,
+      };
+    }
+    return undefined;
+  }
+
+  private mapEntry(entry: any): Entry {
+    const e: Entry = {
+      anonymous: entry.anonymous,
+      constant: entry.constant,
+      name: entry.name,
+      type: EntryType.valueOf(entry.type),
+      payable: entry.payable,
+      stateMutability: StateMutabilityType.valueOf(entry.stateMutability),
+    };
+
+    if (entry.inputs) {
+      e.inputs = [];
+      for (const input of entry.inputs as []) {
+        e.inputs.push(this.mapInOutPut(input));
+      }
+    }
+
+    if (entry.outputs) {
+      e.outputs = [];
+      for (const output of entry.outputs as []) {
+        e.outputs.push(this.mapInOutPut(output));
+      }
+    }
+
+    return e;
+  }
+
+  private mapInOutPut(input: any): InOutput {
+    return {
+      indexed: input.indexed,
+      name: input.name,
+      type: input.type,
+    };
   }
 
   private mapTransfer(transaction: any) {
@@ -487,7 +542,7 @@ export class TransactionService {
     name: string,
     value: boolean,
   ) {
-    if(!transaction.parserInfo) {
+    if (!transaction.parserInfo) {
       transaction.parserInfo = {};
     }
     transaction.parserInfo[name] = value;

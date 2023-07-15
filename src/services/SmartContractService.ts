@@ -1,13 +1,15 @@
-import { Injectable } from "@nestjs/common";
-import { Transaction } from "../schemas/Transaction";
-import { SmartContract } from "../schemas/SmartContract";
-import { CreateSmartContract } from "../schemas/contracts/CreateSmartContract/CreateSmartContract";
-import { InjectModel } from "@nestjs/mongoose";
-import { Model } from "mongoose";
-import { EntryType } from "../schemas/enums/EntryType";
+import { Injectable, Logger } from '@nestjs/common';
+import { Transaction } from '../model/Transaction';
+import { SmartContract } from '../model/SmartContract';
+import { CreateSmartContract } from '../model/contracts/CreateSmartContract/CreateSmartContract';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
+import { EntryType } from '../model/EntryType';
+import e from "express";
 
 @Injectable()
 export class SmartContractService {
+  private readonly logger = new Logger(SmartContractService.name);
   constructor(
     @InjectModel(SmartContract.name)
     private readonly smartContractModel: Model<SmartContract>,
@@ -36,22 +38,63 @@ export class SmartContractService {
     if (createSmartContractValue.abi?.entrys) {
       smartContract.abi = {
         functions: {},
+        events: {},
       };
       for (const entry of (transaction.transactionValue as CreateSmartContract)
         .abi.entrys) {
-        if (entry.type === EntryType.Function) {
-          smartContract.abi.functions[entry.name] = {
-            stateMutability: entry.stateMutability.toString(),
-          };
+        switch (entry.type) {
+          case EntryType.Function:
+            smartContract.abi.functions[entry.name] = {
+              stateMutability: entry.stateMutability.toString(),
+            };
 
-          if (entry.inputs) {
-            smartContract.abi.functions[entry.name].inputParams = {};
+            if (entry.inputs) {
+              smartContract.abi.functions[entry.name].inputParams = {};
 
-            for (const input of entry.inputs) {
-              smartContract.abi.functions[entry.name].inputParams[input.name] =
-                { type: input.type, indexed: input.indexed };
+              for (let i = 0; i < entry.inputs.length; i++) {
+                const input = entry.inputs[i];
+
+                if (
+                  smartContract.abi.functions[entry.name].inputParams[
+                    input.name
+                  ]
+                ) {
+                  // this.logger.error(
+                  //   'Duplicate inputParam on ' +
+                  //     smartContract.name +
+                  //     '.' +
+                  //     entry.name,
+                  // );
+                }
+
+                smartContract.abi.functions[entry.name].inputParams[
+                  input.name
+                ] = { type: input.type, indexed: input.indexed };
+              }
             }
-          }
+            if (entry.outputs) {
+              smartContract.abi.functions[entry.name].outputParams = [];
+
+              for (const output of entry.outputs) {
+                smartContract.abi.functions[entry.name].outputParams.push({
+                  type: output.type,
+                  indexed: output.indexed,
+                });
+              }
+            }
+            break;
+          case EntryType.Event:
+            smartContract.abi.events[entry.name] = {};
+            if (entry.inputs) {
+              smartContract.abi.events[entry.name].inputParams = {};
+              for (const input of entry.inputs) {
+                smartContract.abi.events[entry.name].inputParams[input.name] = {
+                  type: input.type,
+                  indexed: input.indexed,
+                };
+              }
+            }
+            break;
         }
       }
     }

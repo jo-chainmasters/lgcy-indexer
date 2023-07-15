@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Schema as OrigSchema } from 'mongoose';
-import { TransactionType } from './enums/TransactionType';
+import { TransactionType } from './TransactionType';
 import { TransactionInfo } from './TransactionInfo/TransactionInfo';
 import { ParserInfo } from './ParserInfo';
 

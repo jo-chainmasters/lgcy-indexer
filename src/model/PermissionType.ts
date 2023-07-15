@@ -7,6 +7,6 @@ export enum PermissionType {
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace PermissionType {
   export function valueOf(str: string) {
-    return PermissionType[str as keyof typeof PermissionType];
+    return PermissionType[str as keyof typeof PermissionType] as PermissionType;
   }
 }

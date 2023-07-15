@@ -8,8 +8,8 @@ import {
 } from '@nestjs/schedule';
 import { BlockService } from '../services/block.service';
 import { TransactionService } from '../services/transaction.service';
-import { Block } from '../schemas/block.schema';
-import { Transaction } from '../schemas/Transaction';
+import { Block } from '../model/block.schema';
+import { Transaction } from '../model/Transaction';
 
 @Injectable()
 export class BlockSyncerService {

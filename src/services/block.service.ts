@@ -1,10 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Block } from '../schemas/block.schema';
+import { Block } from '../model/block.schema';
 import { Model } from 'mongoose';
 import { LgcyService } from './lgcy.service';
 import { TransactionService } from './transaction.service';
-import { Transaction } from '../schemas/Transaction';
+import { Transaction } from '../model/Transaction';
 
 @Injectable()
 export class BlockService {
