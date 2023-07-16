@@ -20,12 +20,29 @@ import { SmartContractParserService } from './jobs/smart-contract-parser.service
 import { SmartContract, SmartContractSchema } from './model/SmartContract';
 import { SmartContractService } from './services/SmartContractService';
 import { SmartContractController } from './controllers/SmartContractController';
-import { DebugJobService } from "./jobs/DebugJob.service";
+import { DebugJobService } from './jobs/DebugJob.service';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
+import configurationProd from '../configs/prod';
+import configurationDev from '../configs/dev';
+
+const ENV = process.env.NODE_ENV;
 
 @Module({
   imports: [
+    ConfigModule.forRoot({
+      load: [ENV === 'prod' ? configurationProd : configurationDev],
+    }),
     ScheduleModule.forRoot(),
-    MongooseModule.forRoot('mongodb://127.0.0.1/supernest'),
+    MongooseModule.forRoot('mongodb://127.0.0.1/supernest-v2'),
+    // MongooseModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: async (config: ConfigService) => ({
+    //     uri: config.get('database.uri'),
+    //     family: 6,
+    //   }),
+    //   inject: [ConfigService],
+    // }),
     MongooseModule.forFeature([
       { name: Block.name, schema: BlockSchema },
       { name: Transaction.name, schema: TransactionSchema },
