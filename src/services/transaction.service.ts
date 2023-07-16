@@ -594,6 +594,7 @@ export class TransactionService {
     return await this.transactionModel
       .find({
         type: 'CreateSmartContract',
+        successfull: true,
         'parserInfo.transactionInfo': true,
         $or: [
           {
