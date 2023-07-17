@@ -5,7 +5,9 @@ import { CreateSmartContract } from '../model/contracts/CreateSmartContract/Crea
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import { EntryType } from '../model/EntryType';
-import e from "express";
+import e from 'express';
+import { SmartContractDetailsProjection } from '../model/projections/SmartContractDetailsProjection';
+import { TransactionService } from "./transaction.service";
 
 @Injectable()
 export class SmartContractService {
@@ -13,10 +15,49 @@ export class SmartContractService {
   constructor(
     @InjectModel(SmartContract.name)
     private readonly smartContractModel: Model<SmartContract>,
+    private transactionService: TransactionService,
   ) {}
 
   public async insertAll(smartContracts: SmartContract[]) {
     await this.smartContractModel.insertMany(smartContracts);
+  }
+
+  public async getDetailsProjection(address: string) {
+    const projection = new SmartContractDetailsProjection();
+
+    const smartContract = await this.smartContractModel
+      .findOne({
+        address,
+      })
+      .exec();
+
+    const totalAssets = 'TODO';
+    let name = 'TODO';
+    let txCount = 'TODO';
+    let creator = 'TODO';
+    let createdOn = 'TODO';
+    const powerConsuptionRatio = 'TODO';
+
+    projection.contract = smartContract;
+
+    name = smartContract.name;
+    creator = smartContract.created.createdBy;
+    createdOn = smartContract.created.createdAtDate.toISOString();
+
+    // const transactions = await this.transactionService.findByAddress(
+    //   smartContract.address,
+    // );
+    // txCount = transactions.length.toString();
+
+    projection.generalInformations = {
+      totalAssets,
+      name,
+      txCount,
+      creator,
+      createdOn,
+      powerConsuptionRatio,
+    };
+    return projection;
   }
 
   public static createSmartContract(transaction: Transaction): SmartContract {
