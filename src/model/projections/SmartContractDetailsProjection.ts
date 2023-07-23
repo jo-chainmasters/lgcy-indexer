@@ -1,4 +1,4 @@
-import { SmartContract } from "../SmartContract";
+import { SmartContract } from '../SmartContract';
 
 export class SmartContractDetailsProjection {
   contract: SmartContract;

@@ -1,4 +1,3 @@
-
 import { CallValueInfo } from './CallValueInfo';
 
 export class InternalTransaction {

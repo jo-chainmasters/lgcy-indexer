@@ -2,6 +2,9 @@ import { Injectable, Logger } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { catchError, firstValueFrom } from 'rxjs';
 import { AxiosError } from 'axios';
+import { Transaction } from '../model/Transaction';
+import { TriggerSmartContract } from '../model/contracts/TriggerSmartContract';
+import bigDecimal = require('js-big-decimal');
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Weblgcy = require('weblgcy');
@@ -34,6 +37,52 @@ export class LgcyService {
       start + count,
     );
     return blocks;
+  }
+
+  public async getContractCallData(transaction: Transaction) {
+    const contract = await this.lgcyWeb
+      .contract()
+      .at(
+        (transaction.transactionValue as TriggerSmartContract).contractAddress,
+      );
+    const decoded: {
+      name: string;
+      abi: any;
+      functionSelector: string;
+      params: { [key: string]: any };
+    } = await contract.decodeInput(
+      (transaction.transactionValue as TriggerSmartContract).data,
+    );
+
+    decoded.functionSelector = decoded.name + '(';
+
+    for (const entry of contract.abi) {
+      if (entry.name === decoded.name) {
+        decoded.abi = entry;
+      }
+    }
+
+    if (decoded.abi.inputs) {
+      for (const input of decoded.abi.inputs) {
+        decoded.functionSelector += input.type + ',';
+      }
+      decoded.functionSelector = decoded.functionSelector.substring(
+        0,
+        decoded.functionSelector.length - 1,
+      );
+    }
+
+    decoded.functionSelector += ')';
+
+    for (const paramsKey in decoded.params) {
+      if (this.lgcyWeb.utils.isBigNumber(decoded.params[paramsKey])) {
+        decoded.params[paramsKey] = new bigDecimal(
+          decoded.params[paramsKey].toString(16),
+        );
+      }
+    }
+
+    return decoded;
   }
 
   public async getTransactionInfo(hash: string) {

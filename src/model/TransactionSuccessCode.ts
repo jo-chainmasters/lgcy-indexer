@@ -6,6 +6,8 @@ export enum TransactionSuccessCode {
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace TransactionSuccessCode {
   export function valueOf(str: string) {
-    return TransactionSuccessCode[str as keyof typeof TransactionSuccessCode] as TransactionSuccessCode;
+    return TransactionSuccessCode[
+      str as keyof typeof TransactionSuccessCode
+    ] as TransactionSuccessCode;
   }
 }

@@ -1,6 +1,6 @@
 import { Controller, Get, Param, Query } from '@nestjs/common';
 import { SmartContractService } from '../services/SmartContractService';
-import { SmartContractDetailsProjection } from "../model/projections/SmartContractDetailsProjection";
+import { SmartContractDetailsProjection } from '../model/projections/SmartContractDetailsProjection';
 
 @Controller('smartContracts')
 export class SmartContractController {

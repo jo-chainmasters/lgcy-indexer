@@ -1,6 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
-
+import { Abi as OrigAbi } from './contracts/CreateSmartContract/Abi';
 export class InternalMetaData {
   createdBy: string;
   createdAtBlock: number;
@@ -38,7 +38,10 @@ export class SmartContract {
   consumeUserResourcePercent: number;
 
   @Prop({ type: Abi })
-  abi?: Abi;
+  parsedAbi?: Abi;
+
+  @Prop({ type: OrigAbi })
+  abi?: OrigAbi;
 
   @Prop({ type: InternalMetaData })
   created: InternalMetaData;

@@ -25,6 +25,11 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 
 import configurationProd from '../configs/prod';
 import configurationDev from '../configs/dev';
+import { TriggerSmartContractAnalyzer } from './jobs/trigger-smart-contract-analyzer.service';
+import { AccountBalancerService } from './jobs/AccountBalancerService';
+import { Account, AccountSchema } from './model/Account';
+import { ContractCallService } from './services/ContractCallService';
+import { ContractCall, ContractCallSchema } from './model/ContractCall';
 
 const ENV = process.env.NODE_ENV;
 
@@ -47,6 +52,8 @@ const ENV = process.env.NODE_ENV;
       { name: Block.name, schema: BlockSchema },
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartContract.name, schema: SmartContractSchema },
+      { name: Account.name, schema: AccountSchema },
+      { name: ContractCall.name, schema: ContractCallSchema },
     ]),
     HttpModule,
   ],
@@ -69,6 +76,9 @@ const ENV = process.env.NODE_ENV;
     SmartContractParserService,
     SmartContractService,
     DebugJobService,
+    TriggerSmartContractAnalyzer,
+    AccountBalancerService,
+    ContractCallService,
   ],
 })
 export class AppModule {}

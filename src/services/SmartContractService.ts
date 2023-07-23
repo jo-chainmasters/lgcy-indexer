@@ -7,11 +7,12 @@ import { Model } from 'mongoose';
 import { EntryType } from '../model/EntryType';
 import e from 'express';
 import { SmartContractDetailsProjection } from '../model/projections/SmartContractDetailsProjection';
-import { TransactionService } from "./transaction.service";
+import { TransactionService } from './transaction.service';
 
 @Injectable()
 export class SmartContractService {
   private readonly logger = new Logger(SmartContractService.name);
+
   constructor(
     @InjectModel(SmartContract.name)
     private readonly smartContractModel: Model<SmartContract>,
@@ -33,7 +34,7 @@ export class SmartContractService {
 
     const totalAssets = 'TODO';
     let name = 'TODO';
-    let txCount = 'TODO';
+    const txCount = 'TODO';
     let creator = 'TODO';
     let createdOn = 'TODO';
     const powerConsuptionRatio = 'TODO';
@@ -77,7 +78,7 @@ export class SmartContractService {
     };
 
     if (createSmartContractValue.abi?.entrys) {
-      smartContract.abi = {
+      smartContract.parsedAbi = {
         functions: {},
         events: {},
       };
@@ -85,18 +86,18 @@ export class SmartContractService {
         .abi.entrys) {
         switch (entry.type) {
           case EntryType.Function:
-            smartContract.abi.functions[entry.name] = {
+            smartContract.parsedAbi.functions[entry.name] = {
               stateMutability: entry.stateMutability.toString(),
             };
 
             if (entry.inputs) {
-              smartContract.abi.functions[entry.name].inputParams = {};
+              smartContract.parsedAbi.functions[entry.name].inputParams = {};
 
               for (let i = 0; i < entry.inputs.length; i++) {
                 const input = entry.inputs[i];
 
                 if (
-                  smartContract.abi.functions[entry.name].inputParams[
+                  smartContract.parsedAbi.functions[entry.name].inputParams[
                     input.name
                   ]
                 ) {
@@ -108,28 +109,32 @@ export class SmartContractService {
                   // );
                 }
 
-                smartContract.abi.functions[entry.name].inputParams[
+                smartContract.parsedAbi.functions[entry.name].inputParams[
                   input.name
                 ] = { type: input.type, indexed: input.indexed };
               }
             }
             if (entry.outputs) {
-              smartContract.abi.functions[entry.name].outputParams = [];
+              smartContract.parsedAbi.functions[entry.name].outputParams = [];
 
               for (const output of entry.outputs) {
-                smartContract.abi.functions[entry.name].outputParams.push({
-                  type: output.type,
-                  indexed: output.indexed,
-                });
+                smartContract.parsedAbi.functions[entry.name].outputParams.push(
+                  {
+                    type: output.type,
+                    indexed: output.indexed,
+                  },
+                );
               }
             }
             break;
           case EntryType.Event:
-            smartContract.abi.events[entry.name] = {};
+            smartContract.parsedAbi.events[entry.name] = {};
             if (entry.inputs) {
-              smartContract.abi.events[entry.name].inputParams = {};
+              smartContract.parsedAbi.events[entry.name].inputParams = {};
               for (const input of entry.inputs) {
-                smartContract.abi.events[entry.name].inputParams[input.name] = {
+                smartContract.parsedAbi.events[entry.name].inputParams[
+                  input.name
+                ] = {
                   type: input.type,
                   indexed: input.indexed,
                 };

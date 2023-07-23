@@ -41,7 +41,7 @@ export class TransactionService {
     private readonly transactionModel: Model<Transaction>,
     private lgcyService: LgcyService,
   ) {
-    this.logger
+    this.logger;
   }
 
   public isSuccessfull(transaction: any): boolean {
@@ -547,9 +547,20 @@ export class TransactionService {
     }
     transaction.parserInfo[name] = value;
 
-    await this.transactionModel.updateOne(
+    // await this.transactionModel.updateOne(
+    //   { hash: transaction.hash },
+    //   transaction,
+    // );
+
+    const parserInfo = {};
+    parserInfo[name] = value;
+    const update = {};
+    const parserInfoString = 'parserInfo.' + name;
+    update[parserInfoString] = value;
+
+    await this.transactionModel.findOneAndUpdate(
       { hash: transaction.hash },
-      transaction,
+      update,
     );
   }
 
@@ -582,6 +593,44 @@ export class TransactionService {
           },
           {
             'parserInfo.transactionInfo': { $exists: false },
+          },
+        ],
+      })
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+  }
+
+  public async findWithoutBalancing(num = 10) {
+    return await this.transactionModel
+      .find({
+        'parserInfo.transactionInfo': true,
+        $or: [
+          {
+            'parserInfo.usdlBalancing': false,
+          },
+          {
+            'parserInfo.usdlBalancing': { $exists: false },
+          },
+        ],
+      })
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+  }
+
+  public async findWithoutTriggerSmartContactAnalayzing(num = 10) {
+    return await this.transactionModel
+      .find({
+        type: 'TriggerSmartContract',
+        successfull: true,
+        'parserInfo.transactionInfo': true,
+        $or: [
+          {
+            'parserInfo.triggerSmartContractRecorded': false,
+          },
+          {
+            'parserInfo.triggerSmartContractRecorded': { $exists: false },
           },
         ],
       })
@@ -640,7 +689,9 @@ export class TransactionService {
       successCode: TransactionSuccessCode.valueOf(
         data.result,
       ) as TransactionSuccessCode,
-      resMessage: data.resMessage,
+      resMessage: data.resMessage
+        ? this.lgcyService.hexToUtf8(data.resMessage)
+        : undefined,
       assetIssueID: data.assetIssueID
         ? this.lgcyService.hexToUtf8(data.assetIssueID)
         : undefined,
@@ -750,6 +801,8 @@ export class TransactionService {
     ) {
       if (txInfo.resourceReceipt.result === ContractResult.SUCCESS) {
         transaction.successfull = true;
+      } else {
+        transaction.successfull = false;
       }
     }
 

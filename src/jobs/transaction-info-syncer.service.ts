@@ -28,12 +28,11 @@ export class TransactionInfoSyncerService {
       if (transaction.type !== TransactionType.TransferContract)
         transaction.transactionInfo = txInfo;
 
-      this.transactionService.setParserInfo(
+      await this.transactionService.setParserInfo(
         transaction,
         'transactionInfo',
         true,
       );
-      transaction.parserInfo.transactionInfo = true;
     }
     await this.transactionService.updateAll(transactions);
   }
