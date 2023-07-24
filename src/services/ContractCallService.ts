@@ -23,12 +23,14 @@ export class ContractCallService {
     const paramNames: string[] = [];
     const paramValues: any[] = [];
     const paramTypes: string[] = [];
-    for (const paramsKey in callData.params as { [key: string]: any }) {
-      paramNames.push(paramsKey);
-      paramValues.push(callData.params[paramsKey]);
+    if ((callData as any).params) {
+      for (const paramsKey in (callData as any).params as { [key: string]: any }) {
+        paramNames.push(paramsKey);
+        paramValues.push((callData as any).params[paramsKey]);
+      }
     }
-    if (callData.abi?.inputs) {
-      for (const input of callData.abi.inputs) {
+    if ((callData as any).abi?.inputs) {
+      for (const input of (callData as any).abi.inputs) {
         paramTypes.push(input.type);
       }
     }
@@ -38,11 +40,11 @@ export class ContractCallService {
       contractAddress: (transaction.transactionValue as TriggerSmartContract)
         .contractAddress,
       sender: transaction.sender,
-      functionSelector: callData.functionSelector,
-      functionName: callData.name,
-      paramNames,
-      paramValues,
-      paramTypes,
+      functionSelector: (callData as any).functionSelector,
+      functionName: (callData as any).name,
+      paramNames: paramNames.length > 0 ? paramNames : undefined,
+      paramValues: paramValues.length > 0 ? paramValues : undefined,
+      paramTypes: paramTypes.length > 0 ? paramTypes : undefined,
     };
 
     for (let i = 0; i < paramValues.length; i++) {

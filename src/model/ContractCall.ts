@@ -14,15 +14,15 @@ export class ContractCall {
   @Prop()
   contractAddress: string;
   @Prop()
-  functionSelector: string;
+  functionSelector?: string;
   @Prop()
-  functionName: string;
+  functionName?: string;
   @Prop([String])
-  paramNames: string[];
+  paramNames?: string[];
   @Prop([String])
-  paramTypes: string[];
+  paramTypes?: string[];
   @Prop([String])
-  paramValues: string[];
+  paramValues?: string[];
 }
 
 export const ContractCallSchema = SchemaFactory.createForClass(ContractCall);
