@@ -24,7 +24,9 @@ export class ContractCallService {
     const paramValues: any[] = [];
     const paramTypes: string[] = [];
     if ((callData as any).params) {
-      for (const paramsKey in (callData as any).params as { [key: string]: any }) {
+      for (const paramsKey in (callData as any).params as {
+        [key: string]: any;
+      }) {
         paramNames.push(paramsKey);
         paramValues.push((callData as any).params[paramsKey]);
       }
@@ -54,8 +56,15 @@ export class ContractCallService {
       if (t === 'address') {
         paramValues[i] = this.lgcyService.hexToBase58(v);
       }
-      if (t.startsWith('uint256')) {
+      if (t === 'uint256') {
         paramValues[i] = (paramValues[i] as bigDecimal).getValue();
+      }
+
+      if (t === 'uint256[]') {
+        for (let j = 0; j < (paramValues[i] as []).length; j++) {
+          const paramValueElement = (paramValues[i] as [])[j];
+          paramValues[i][j] = (paramValueElement as bigDecimal).getValue();
+        }
       }
     }
     return contractCall;

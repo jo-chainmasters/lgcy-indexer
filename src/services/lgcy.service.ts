@@ -83,6 +83,15 @@ export class LgcyService {
             decoded.params[paramsKey].toString(16),
           );
         }
+        if (this.lgcyWeb.utils.isArray(decoded.params[paramsKey])) {
+          for (let i = 0; i <= decoded.params[paramsKey].length - 1; i++) {
+            if (this.lgcyWeb.utils.isBigNumber(decoded.params[paramsKey][i])) {
+              decoded.params[paramsKey][i] = new bigDecimal(
+                (decoded.params[paramsKey][i] as any).toString(16),
+              );
+            }
+          }
+        }
       }
 
       return decoded;

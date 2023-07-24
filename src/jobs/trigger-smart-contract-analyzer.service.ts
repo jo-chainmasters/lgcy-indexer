@@ -14,7 +14,7 @@ export class TriggerSmartContractAnalyzer {
     private contractCallService: ContractCallService,
   ) {}
 
-  @Cron(CronExpression.EVERY_SECOND)
+  // @Cron(CronExpression.EVERY_SECOND)
   public async analayzeSmartContract() {
     const transactions =
       await this.transactionService.findWithoutTriggerSmartContactAnalayzing();
