@@ -8,8 +8,8 @@ export class TransactionController {
   constructor(private transactionService: TransactionService) {}
 
   @Get('byAddress/:address')
-  public async getTransactionPage(@Param() params, @Query() query) {
-    const transactions = await this.transactionService.getPage(
+  public async getTransactionPageByAddress(@Param() params, @Query() query) {
+    const transactions = await this.transactionService.getPageByAddress(
       params.address,
       query.first,
       query.rows,
@@ -17,6 +17,16 @@ export class TransactionController {
       query.sortOrder,
     );
     return transactions;
+  }
+
+  @Get('page')
+  public async getTransactionPage(@Param() params, @Query() query) {
+    return await this.transactionService.getPage(
+      query.first,
+      query.rows,
+      query.sortField,
+      query.sortOrder,
+    );
   }
 
   @Get('byHash/:hash')
