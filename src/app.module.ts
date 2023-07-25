@@ -14,7 +14,7 @@ import { TransactionController } from './controllers/TransactionController';
 import { TransactionInfoSyncerService } from './jobs/transaction-info-syncer.service';
 import { HttpModule } from '@nestjs/axios';
 import { DashboardController } from './controllers/DashboardController';
-import { DashboardService } from './services/DashboardService';
+import { DashboardDataService } from './services/dashboard-data.service';
 import { AccountService } from './services/AccountService';
 import { SmartContractParserService } from './jobs/smart-contract-parser.service';
 import { SmartContract, SmartContractSchema } from './model/SmartContract';
@@ -30,6 +30,8 @@ import { AccountBalancerService } from './jobs/AccountBalancerService';
 import { Account, AccountSchema } from './model/Account';
 import { ContractCallService } from './services/ContractCallService';
 import { ContractCall, ContractCallSchema } from './model/ContractCall';
+import { DashboardData, DashboardDataSchema } from "./model/DashboardData";
+import { DashboardDataGenerator } from "./jobs/DashboardDataGenerator";
 
 const ENV = process.env.NODE_ENV;
 
@@ -54,6 +56,7 @@ const ENV = process.env.NODE_ENV;
       { name: SmartContract.name, schema: SmartContractSchema },
       { name: Account.name, schema: AccountSchema },
       { name: ContractCall.name, schema: ContractCallSchema },
+      { name: DashboardData.name, schema: DashboardDataSchema },
     ]),
     HttpModule,
   ],
@@ -71,7 +74,7 @@ const ENV = process.env.NODE_ENV;
     LgcyService,
     BlockService,
     TransactionService,
-    DashboardService,
+    DashboardDataService,
     AccountService,
     SmartContractParserService,
     SmartContractService,
@@ -79,6 +82,7 @@ const ENV = process.env.NODE_ENV;
     TriggerSmartContractAnalyzer,
     AccountBalancerService,
     ContractCallService,
+    DashboardDataGenerator,
   ],
 })
 export class AppModule {}

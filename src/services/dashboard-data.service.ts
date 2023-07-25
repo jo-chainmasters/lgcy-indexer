@@ -1,25 +1,56 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { DashboardData } from '../model/projections/DashboardData';
+import { DashboardData } from '../model/DashboardData';
 import { BlockService } from './block.service';
 import { TransactionService } from './transaction.service';
+import { Block } from '../model/block.schema';
+import { InjectModel } from '@nestjs/mongoose';
+import { Model } from 'mongoose';
 
 @Injectable()
-export class DashboardService {
-  private readonly logger = new Logger(DashboardService.name);
+export class DashboardDataService {
+  private readonly logger = new Logger(DashboardDataService.name);
 
   constructor(
+    @InjectModel(DashboardData.name)
+    private readonly dashboardDataModel: Model<DashboardData>,
     private blockService: BlockService,
     private transactionService: TransactionService,
   ) {}
 
-  public async getDashboardData(): Promise<DashboardData> {
-    const now = new Date();
+  public async findLast() {
+    return await this.dashboardDataModel
+      .findOne()
+      .sort({ currentBlock: -1 })
+      .limit(1)
+      .exec();
+  }
 
-    const lastBlock = await this.blockService.findLast();
+  public async getDashboardDataAtCurrentBlock() {
+    const currentBlock = await this.blockService.findLast();
+    return this.getDashboardDataAtBlock(currentBlock);
+  }
 
-    const currentBlock = '' + lastBlock.number;
+  public async saveAll(dashboardDatas: DashboardData[]) {
+    return await this.dashboardDataModel.insertMany(dashboardDatas);
+  }
+
+  public async save(dashboardData: DashboardData) {
+    await this.dashboardDataModel.insertMany([dashboardData]);
+  }
+
+  public async getDashboardDataAtBlockNumber(blockNumber: number) {
+    const block = await this.blockService.findByNumber(blockNumber);
+    return this.getDashboardDataAtBlock(block);
+  }
+
+  public async getDashboardDataAtBlock(block: Block) {
+    const currentBlock = block.number;
     const totalTransactions =
-      '' + (await this.transactionService.countTransactions());
+      '' +
+      (await this.transactionService.countTransactionsBlockRange(
+        1,
+        block.number,
+      ));
     const totalAccounts = 'TODO';
     const totalNodes = 'TODO';
     const frozenLgcy = 'TODO';
@@ -30,22 +61,10 @@ export class DashboardService {
       totalAccounts,
       totalNodes,
       frozenLgcy,
-      this.getHourLabels(12, now),
-      this.getHourLabels(24, now),
-      this.getHourLabels(36, now),
-      this.getHourLabels(48, now),
-      await this.getHourData(12, now),
-      await this.getHourData(24, now),
-      await this.getHourData(36, now),
-      await this.getHourData(48, now),
-      this.getDayLabels(7, now),
-      this.getDayLabels(14, now),
-      this.getDayLabels(21, now),
-      this.getDayLabels(28, now),
-      await this.getDayData(7, now),
-      await this.getDayData(14, now),
-      await this.getDayData(21, now),
-      await this.getDayData(28, now),
+      this.getHourLabels(24, block.timestamp),
+      await this.getHourData(24, block.timestamp),
+      this.getDayLabels(7, block.timestamp),
+      await this.getDayData(7, block.timestamp),
     );
   }
 

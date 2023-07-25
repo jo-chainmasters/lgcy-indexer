@@ -662,6 +662,13 @@ export class TransactionService {
   public async countTransactions() {
     return this.transactionModel.count().exec();
   }
+  public async countTransactionsBlockRange(from: number, to: number) {
+    return this.transactionModel
+      .count({
+        blockNumber: { $gte: from, $lt: to },
+      })
+      .exec();
+  }
 
   public async countTransactionsTimeRange(from: Date, to: Date) {
     return this.transactionModel

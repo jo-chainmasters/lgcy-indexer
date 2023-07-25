@@ -26,6 +26,23 @@ export class BlockService {
     return this.blockModel.findOne().sort({ number: -1 }).limit(1).exec();
   }
 
+  public async findByNumber(blockNumber: number) {
+    return this.blockModel.findOne({ number: blockNumber }).exec();
+  }
+
+  public async findWithoutDashboardData(num = 10) {
+    return await this.blockModel
+      .find({
+        $or: [
+          { 'parserInfo.dashboardData': false },
+          { 'parserInfo.dashboardData': { $exists: false } },
+        ],
+      })
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+  }
+
   public async getBlockByNumber(
     num: number,
   ): Promise<{ block: Block; transactions: Transaction[] }> {
@@ -82,5 +99,20 @@ export class BlockService {
       number: block.block_header.raw_data.number,
       timestamp: new Date(block.block_header.raw_data.timestamp * 1),
     };
+  }
+
+  public async setParserInfo(block: Block, name: string, value: boolean) {
+    if (!block.parserInfo) {
+      block.parserInfo = {};
+    }
+    block.parserInfo[name] = value;
+
+    const parserInfo = {};
+    parserInfo[name] = value;
+    const update = {};
+    const parserInfoString = 'parserInfo.' + name;
+    update[parserInfoString] = value;
+
+    await this.blockModel.findOneAndUpdate({ number: block.number }, update);
   }
 }

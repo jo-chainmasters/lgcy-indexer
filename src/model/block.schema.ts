@@ -1,5 +1,6 @@
 import { HydratedDocument } from 'mongoose';
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import { ParserInfo } from "./ParserInfo";
 
 export type BlockSchema = HydratedDocument<Block>;
 
@@ -13,6 +14,8 @@ export class Block {
   number: number;
   @Prop()
   timestamp: Date;
+  @Prop({ type: ParserInfo })
+  parserInfo?: ParserInfo;
 }
 
 export const BlockSchema = SchemaFactory.createForClass(Block);
