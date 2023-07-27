@@ -5,6 +5,7 @@ import { TransactionService } from './transaction.service';
 import { Block } from '../model/block.schema';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import bigDecimal = require('js-big-decimal');
 
 @Injectable()
 export class DashboardDataService {
@@ -54,6 +55,7 @@ export class DashboardDataService {
     const totalAccounts = 'TODO';
     const totalNodes = 'TODO';
     const frozenLgcy = 'TODO';
+    const burntUsdl = await this.getBurntUsdl(new Date());
 
     return new DashboardData(
       currentBlock,
@@ -61,6 +63,7 @@ export class DashboardDataService {
       totalAccounts,
       totalNodes,
       frozenLgcy,
+      burntUsdl,
       this.getHourLabels(24, block.timestamp),
       await this.getHourData(24, block.timestamp),
       this.getDayLabels(7, block.timestamp),
@@ -108,6 +111,27 @@ export class DashboardDataService {
     }
 
     return arr.reverse();
+  }
+
+  private async getBurntUsdl(from: Date) {
+    const dateStart = new Date(from);
+    dateStart.setHours(0, 0, 0, 0);
+    const dateEnd = new Date(from);
+    dateEnd.setHours(23, 59, 59, 999);
+    const transactions = await this.transactionService.findInTimeRange(
+      dateStart,
+      dateEnd,
+    );
+
+    let feeSum = new bigDecimal('0');
+
+    for (const transaction of transactions) {
+      feeSum = feeSum.add(new bigDecimal(transaction.fee));
+    }
+
+    return feeSum
+      .divide(new bigDecimal('1000000'), bigDecimal.RoundingModes.UNNECESSARY)
+      .getValue();
   }
 
   private async getDayData(count: number, from: Date): Promise<number[]> {

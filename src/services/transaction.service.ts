@@ -842,6 +842,14 @@ export class TransactionService {
     return { totalRecords, transactions };
   }
 
+  public async findInTimeRange(start: Date, end: Date) {
+    return this.transactionModel
+      .find({
+        timestamp: { $gte: start, $lt: end },
+      })
+      .exec();
+  }
+
   public async getPage(
     skip: number,
     pageSize: number,

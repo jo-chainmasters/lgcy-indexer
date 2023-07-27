@@ -15,6 +15,8 @@ export class DashboardData {
   public totalTransactions: string;
   @Prop()
   public frozenLgcy: string;
+  @Prop()
+  public burntUsdl: string;
 
   @Prop([String])
   public labelsHours24: string[];
@@ -34,6 +36,7 @@ export class DashboardData {
     totalNodes: string,
     totalTransactions: string,
     frozenLgcy: string,
+    burntUsdl: string,
     labelsHours24: string[],
     dataHours24: number[],
     labelsDays7: string[],
@@ -44,6 +47,7 @@ export class DashboardData {
     this.totalNodes = totalNodes;
     this.totalTransactions = totalTransactions;
     this.frozenLgcy = frozenLgcy;
+    this.burntUsdl = burntUsdl;
     this.labelsHours24 = labelsHours24;
     this.dataHours24 = dataHours24;
     this.labelsDays7 = labelsDays7;
