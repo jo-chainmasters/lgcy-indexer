@@ -1,6 +1,8 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument } from 'mongoose';
 import { Abi as OrigAbi } from './contracts/CreateSmartContract/Abi';
+import { ContractType } from "./ContractType";
+import { TransactionType } from "./TransactionType";
 export class InternalMetaData {
   createdBy: string;
   createdAtBlock: number;
@@ -17,8 +19,11 @@ export interface SmartContractFunction {
 }
 
 export interface SmartContractParamData {
+  name?: string;
+  functionSelector?: string;
+  functionSignature?: string;
   stateMutability?: string;
-  inputParams?: SmartContractParam;
+  inputParams?: { type: string; name: string; indexed: boolean }[];
   outputParams?: { type: string; indexed: boolean }[];
 }
 
@@ -30,6 +35,8 @@ export type SmartContractSchema = HydratedDocument<SmartContract>;
 
 @Schema()
 export class SmartContract {
+  @Prop({ type: [{ type: String, enum: ContractType, default: undefined }] })
+  types?: ContractType[];
   @Prop()
   name: string;
   @Prop()

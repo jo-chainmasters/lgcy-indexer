@@ -6,6 +6,7 @@ import { Transaction } from '../model/Transaction';
 import { TriggerSmartContract } from '../model/contracts/TriggerSmartContract';
 import bigDecimal = require('js-big-decimal');
 import { ContractCall } from '../model/ContractCall';
+import { SmartContract } from '../model/SmartContract';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const Weblgcy = require('weblgcy');
@@ -27,6 +28,25 @@ export class LgcyService {
   //   return this.mapBlock(block);
   // }
 
+  public async callContract(
+    address: string,
+    functionName: string,
+    params: any[],
+  ) {
+    const contract = await this.lgcyWeb.contract().at(address);
+    if (contract[functionName]) {
+      const result = await contract[functionName](...params).call({
+        from: address,
+      });
+      return result;
+    } else {
+      console.log(
+        'Contract ' + address + ' does not have function ' + functionName,
+      );
+      throw new Error('Contract does not have function');
+    }
+  }
+
   public async getBlockByNumber(num: number) {
     const blockHttp: any = await this.lgcyWeb.legacy.getBlockByNumber(num);
     return blockHttp;
@@ -40,55 +60,71 @@ export class LgcyService {
     return blocks;
   }
 
-  public async getContractCallData(transaction: Transaction) {
+  public async getContractCallData(
+    smartContract: SmartContract,
+    transaction: Transaction,
+  ) {
     const contract = await this.lgcyWeb
       .contract()
       .at(
         (transaction.transactionValue as TriggerSmartContract).contractAddress,
       );
+    let decoded: {
+      name: string;
+      params: { [key: string]: any };
+    };
 
     try {
-      const decoded: {
-        name: string;
-        abi: any;
-        functionSelector: string;
-        params: { [key: string]: any };
-      } = await contract.decodeInput(
+      decoded = await contract.decodeInput(
         (transaction.transactionValue as TriggerSmartContract).data,
       );
 
-      decoded.functionSelector = decoded.name + '(';
-
-      for (const entry of contract.abi) {
-        if (entry.name === decoded.name) {
-          decoded.abi = entry;
-        }
-      }
-
-      if (decoded.abi.inputs) {
-        for (const input of decoded.abi.inputs) {
-          decoded.functionSelector += input.type + ',';
-        }
-        decoded.functionSelector = decoded.functionSelector.substring(
-          0,
-          decoded.functionSelector.length - 1,
-        );
-      }
-
-      decoded.functionSelector += ')';
-
+      // convert BigNumber to bigDecimal
       for (const paramsKey in decoded.params) {
         if (this.lgcyWeb.utils.isBigNumber(decoded.params[paramsKey])) {
           decoded.params[paramsKey] = new bigDecimal(
             decoded.params[paramsKey].toString(16),
           );
         }
+
+        if (smartContract.parsedAbi.functions[decoded.name].inputParams) {
+          for (const inputParam of smartContract.parsedAbi.functions[
+            decoded.name
+          ].inputParams) {
+            if (
+              inputParam.name === paramsKey &&
+              inputParam.type === 'address'
+            ) {
+              decoded.params[paramsKey] = this.hexToBase58(
+                decoded.params[paramsKey],
+              );
+            }
+          }
+        }
+
         if (this.lgcyWeb.utils.isArray(decoded.params[paramsKey])) {
           for (let i = 0; i <= decoded.params[paramsKey].length - 1; i++) {
             if (this.lgcyWeb.utils.isBigNumber(decoded.params[paramsKey][i])) {
               decoded.params[paramsKey][i] = new bigDecimal(
                 (decoded.params[paramsKey][i] as any).toString(16),
               );
+            }
+
+            if (
+              smartContract.parsedAbi.functions[decoded.name].inputParams
+            ) {
+              for (const inputParam of smartContract.parsedAbi.functions[
+                decoded.name
+              ].inputParams) {
+                if (
+                  inputParam.name === decoded.params[paramsKey].name &&
+                  inputParam.type === 'address[]'
+                ) {
+                  decoded.params[paramsKey][i] = this.hexToBase58(
+                    decoded.params[paramsKey][i],
+                  );
+                }
+              }
             }
           }
         }
@@ -99,7 +135,14 @@ export class LgcyService {
       this.logger.warn(
         'Found TriggerSmartContract of an unknown Function: ' +
           (transaction.transactionValue as TriggerSmartContract)
-            .contractAddress,
+            .contractAddress +
+          ' tx: ' +
+          transaction.hash +
+          ', functionSignature: ' +
+          (transaction.transactionValue as TriggerSmartContract).data.substring(
+            0,
+            8,
+          ),
       );
 
       return {

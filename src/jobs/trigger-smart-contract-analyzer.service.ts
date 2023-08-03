@@ -14,7 +14,7 @@ export class TriggerSmartContractAnalyzer {
     private contractCallService: ContractCallService,
   ) {}
 
-  // @Cron(CronExpression.EVERY_SECOND)
+  @Cron(CronExpression.EVERY_SECOND)
   public async analayzeSmartContract() {
     const transactions =
       await this.transactionService.findWithoutTriggerSmartContactAnalayzing();
@@ -28,12 +28,20 @@ export class TriggerSmartContractAnalyzer {
       const contractCall = await this.contractCallService.createContractCall(
         transaction,
       );
-      await this.contractCallService.save(contractCall as ContractCall);
-      await this.transactionService.setParserInfo(
-        transaction,
-        'triggerSmartContractRecorded',
-        true,
-      );
+
+      if (contractCall) {
+        // console.log(contractCall);
+        // await this.contractCallService.save(contractCall as ContractCall);
+        await this.transactionService.setCallData(
+          transaction.hash,
+          contractCall,
+        );
+        await this.transactionService.setParserInfo(
+          transaction,
+          'triggerSmartContractRecorded',
+          true,
+        );
+      }
     }
   }
 }

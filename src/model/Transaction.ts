@@ -3,6 +3,8 @@ import { HydratedDocument, Schema as OrigSchema } from 'mongoose';
 import { TransactionType } from './TransactionType';
 import { TransactionInfo } from './TransactionInfo/TransactionInfo';
 import { ParserInfo } from './ParserInfo';
+import { ContractCall } from './ContractCall';
+import { TransactionEvent } from './TransactionEvent';
 
 export type TransactionSchema = HydratedDocument<Transaction>;
 
@@ -39,6 +41,10 @@ export class Transaction {
   transactionValue?: TransactionValue;
   @Prop({ type: TransactionInfo })
   transactionInfo?: TransactionInfo;
+  @Prop({ type: ContractCall })
+  contractCall?: ContractCall;
+  @Prop({ type: TransactionEvent })
+  events?: TransactionEvent;
 }
 
 export const TransactionSchema = SchemaFactory.createForClass(Transaction);

@@ -29,9 +29,10 @@ import { TriggerSmartContractAnalyzer } from './jobs/trigger-smart-contract-anal
 import { AccountBalancerService } from './jobs/AccountBalancerService';
 import { Account, AccountSchema } from './model/Account';
 import { ContractCallService } from './services/ContractCallService';
-import { ContractCall, ContractCallSchema } from './model/ContractCall';
-import { DashboardData, DashboardDataSchema } from "./model/DashboardData";
-import { DashboardDataGenerator } from "./jobs/DashboardDataGenerator";
+import { DashboardData, DashboardDataSchema } from './model/DashboardData';
+import { DashboardDataGenerator } from './jobs/DashboardDataGenerator';
+import { TransactionEventParser } from "./jobs/TransactionEventParser";
+import { TransactionEventService } from "./services/TransactionEventService";
 
 const ENV = process.env.NODE_ENV;
 
@@ -55,7 +56,6 @@ const ENV = process.env.NODE_ENV;
       { name: Transaction.name, schema: TransactionSchema },
       { name: SmartContract.name, schema: SmartContractSchema },
       { name: Account.name, schema: AccountSchema },
-      { name: ContractCall.name, schema: ContractCallSchema },
       { name: DashboardData.name, schema: DashboardDataSchema },
     ]),
     HttpModule,
@@ -83,6 +83,8 @@ const ENV = process.env.NODE_ENV;
     AccountBalancerService,
     ContractCallService,
     DashboardDataGenerator,
+    TransactionEventParser,
+    TransactionEventService,
   ],
 })
 export class AppModule {}

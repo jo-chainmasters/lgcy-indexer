@@ -26,8 +26,9 @@ export class SmartContractParserService {
     }
 
     for (const transaction of createSmartContractTransactions) {
-      const smartContract =
-        SmartContractService.createSmartContract(transaction);
+      const smartContract = await this.smartContractService.createSmartContract(
+        transaction,
+      );
       await this.smartContractService.insertAll([smartContract]);
       await this.transactionService.setParserInfo(
         transaction,

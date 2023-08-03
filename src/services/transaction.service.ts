@@ -31,6 +31,10 @@ import { StateMutabilityType } from '../model/StateMutabilityType';
 import { InOutput } from '../model/contracts/CreateSmartContract/InOutput';
 import { ResourceType } from '../model/ResourceType';
 import { PermissionType } from '../model/PermissionType';
+import { ContractCall } from '../model/ContractCall';
+import { SmartContractService } from './SmartContractService';
+import { SmartContract } from '../model/SmartContract';
+import { TransactionEvent } from '../model/TransactionEvent';
 
 @Injectable()
 export class TransactionService {
@@ -457,10 +461,10 @@ export class TransactionService {
     const contractAddress = this.lgcyService.hexToBase58(
       contractValue.contract_address,
     );
-    const callValue = contractValue.callValue;
+    const callValue = contractValue.call_value;
     const data = contractValue.data;
-    const callTokenValue = contractValue.callTokenValue;
-    const tokenId = contractValue.tokenId;
+    const callTokenValue = contractValue.call_token_value;
+    const tokenId = contractValue.token_d;
     return { contractAddress, callValue, data, callTokenValue, tokenId };
   }
 
@@ -537,6 +541,17 @@ export class TransactionService {
     await this.transactionModel.insertMany(transactions);
   }
 
+  public async setCallData(hash: string, callData: ContractCall) {
+    return this.transactionModel.findOneAndUpdate(
+      {
+        hash,
+      },
+      {
+        contractCall: callData,
+      },
+    );
+  }
+
   public async setParserInfo(
     transaction: Transaction,
     name: string,
@@ -546,11 +561,6 @@ export class TransactionService {
       transaction.parserInfo = {};
     }
     transaction.parserInfo[name] = value;
-
-    // await this.transactionModel.updateOne(
-    //   { hash: transaction.hash },
-    //   transaction,
-    // );
 
     const parserInfo = {};
     parserInfo[name] = value;
@@ -582,6 +592,66 @@ export class TransactionService {
     return await this.transactionModel
       .find({ $or: [{ sender: address }, { receiver: address }] })
       .exec();
+  }
+
+  public async findWithoutEventParser(num = 10) {
+    const agg = [
+      {
+        $match: {
+          type: 'TriggerSmartContract',
+          successfull: true,
+          'transactionInfo.logs': { $exists: true },
+          $or: [
+            {
+              'parserInfo.event': false,
+            },
+            {
+              'parserInfo.event': { $exists: false },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: 'smartcontracts',
+          localField: 'transactionInfo.contractAddress',
+          foreignField: 'address',
+          as: 'ca',
+        },
+      },
+      {
+        $match: {
+          'ca.types': '_20',
+        },
+      },
+      {
+        $unset: 'ca',
+      },
+    ];
+    return await this.transactionModel
+      .aggregate(agg)
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+    // return await this.transactionModel
+    //   .find({
+    //     type: TransactionType.TriggerSmartContract,
+    //     'transactionInfo.logs': { $exists: true },
+    //     $where: 'this.transactionInfo.logs.length>0',
+    //     successfull: true,
+    //     'parserInfo.transactionInfo': true,
+    //     $or: [
+    //       {
+    //         'parserInfo.event': false,
+    //       },
+    //       {
+    //         'parserInfo.event': { $exists: false },
+    //       },
+    //     ],
+    //   })
+    //   .sort({ blockNumber: 1 })
+    //   .limit(num)
+    //   .exec();
   }
 
   public async findWithoutTransactionInfo(num = 10) {
@@ -678,10 +748,26 @@ export class TransactionService {
       .exec();
   }
 
+  public async setEvents(transaction: Transaction, events: TransactionEvent[]) {
+    return await this.transactionModel
+      .findOneAndUpdate(
+        {
+          hash: transaction.hash,
+        },
+        {
+          $set: {
+            events: events,
+          },
+        },
+      )
+      .exec();
+  }
+
   public async getTransactionInfoFromChain(transaction: Transaction) {
     const transactionInfo = await this.lgcyService.getTransactionInfoFromHttp(
       transaction.hash,
     );
+
     return this.mapTransactionInfo(transactionInfo, transaction);
   }
 
@@ -741,7 +827,7 @@ export class TransactionService {
       for (const logElement of data.log) {
         const log: Log = {
           address: logElement.address
-            ? this.lgcyService.hexToBase58(logElement.address)
+            ? this.lgcyService.hexToBase58('30' + logElement.address)
             : undefined,
           data: logElement.data,
           topics: [],
