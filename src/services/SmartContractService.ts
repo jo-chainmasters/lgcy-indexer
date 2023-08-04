@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Transaction } from '../model/Transaction';
-import { SmartContract, SmartContractParamData } from "../model/SmartContract";
+import { SmartContract, SmartContractParamData } from '../model/SmartContract';
 import { CreateSmartContract } from '../model/contracts/CreateSmartContract/CreateSmartContract';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
@@ -36,7 +36,6 @@ export class SmartContractService {
         address,
       })
       .exec();
-
     // generalInformations
 
     const totalAssets = 'TODO';
@@ -157,8 +156,7 @@ export class SmartContractService {
             break;
 
           case EntryType.Event:
-
-            const _event: SmartContractParamData = {name: entry.name};
+            const _event: SmartContractParamData = { name: entry.name };
             let signature = entry.name + '(';
             // smartContract.parsedAbi.events[entry.name] = {};
             if (entry.inputs) {
@@ -199,12 +197,44 @@ export class SmartContractService {
     const sort = {};
     sort[sortField] = sortOrder;
 
-    const smartContracts = await this.smartContractModel
-      .find()
-      .skip(skip)
-      .sort(sort)
-      .limit(pageSize)
-      .exec();
+    const agg = [
+      {
+        $sort: sort,
+      },
+      {
+        $skip: skip,
+      },
+      {
+        $limit: pageSize,
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'address',
+          foreignField: 'transactionInfo.contractAddress',
+          as: 'transactions',
+        },
+      },
+      {
+        $set: {
+          transactionCount: {
+            $size: '$transactions',
+          },
+        },
+      },
+      {
+        $unset: 'transactions',
+      },
+    ];
+
+    const smartContracts = await this.smartContractModel.aggregate(agg).exec();
+
+    // const smartContracts = await this.smartContractModel
+    //   .find()
+    //   .skip(skip)
+    //   .sort(sort)
+    //   .limit(pageSize)
+    //   .exec();
 
     return { totalRecords, smartContracts };
   }

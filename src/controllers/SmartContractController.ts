@@ -9,10 +9,10 @@ export class SmartContractController {
   @Get('page')
   public async getSmartContractPage(@Param() params, @Query() query) {
     const smartContracts = await this.smartContractService.getPage(
-      query.first,
-      query.rows,
+      Number(query.first),
+      Number(query.rows),
       query.sortField,
-      query.sortOrder,
+      Number(query.sortOrder),
     );
     return smartContracts;
   }
