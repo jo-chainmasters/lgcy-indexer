@@ -5,7 +5,7 @@ export class SmartContractDetailsProjection {
   generalInformations: { [key: string]: string };
   callingData: {
     data: KeyValue;
-    topMethods: KeyValue;
+    methodCalls: KeyValue;
     topAddresses: KeyValue;
   };
 }

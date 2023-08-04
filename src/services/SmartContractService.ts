@@ -3,7 +3,7 @@ import { Transaction } from '../model/Transaction';
 import { SmartContract, SmartContractParamData } from '../model/SmartContract';
 import { CreateSmartContract } from '../model/contracts/CreateSmartContract/CreateSmartContract';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, PipelineStage } from 'mongoose';
 import { EntryType } from '../model/EntryType';
 import { SmartContractDetailsProjection } from '../model/projections/SmartContractDetailsProjection';
 import { TransactionService } from './transaction.service';
@@ -31,19 +31,100 @@ export class SmartContractService {
   public async getDetailsProjection(address: string) {
     const projection = new SmartContractDetailsProjection();
 
-    const smartContract = await this.smartContractModel
-      .findOne({
-        address,
-      })
-      .exec();
+    // const smartContract = await this.smartContractModel
+    //   .findOne({
+    //     address,
+    //   })
+    //   .exec();
     // generalInformations
 
+    const agg: PipelineStage[] = [
+      {
+        $match: {
+          address,
+        },
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'address',
+          foreignField: 'transactionInfo.contractAddress',
+          as: 'transactionsAll',
+        },
+      },
+      {
+        $set: {
+          transactionCount: {
+            $size: '$transactionsAll',
+          },
+        },
+      },
+      {
+        $unset: 'transactionsAll',
+      },
+      {
+        $lookup: {
+          from: 'transactions',
+          localField: 'address',
+          foreignField: 'transactionInfo.contractAddress',
+          as: 'transactionsAll',
+          pipeline: [
+            {
+              $sort: {
+                timestamp: -1,
+              },
+            },
+            {
+              $match: {
+                $expr: {
+                  $gte: [
+                    '$timestamp',
+                    {
+                      $dateSubtract: {
+                        startDate: new Date(),
+                        unit: 'hour',
+                        amount: 24,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+            {
+              $group: {
+                _id: '$contractCall.functionName',
+                k: {
+                  $first: '$contractCall.functionName',
+                },
+                v: {
+                  $count: {},
+                },
+              },
+            },
+          ],
+        },
+      },
+    ];
+    const smartContractAll = await this.smartContractModel
+      .aggregate(agg)
+      .exec();
+
+    const smartContract = smartContractAll[0];
     const totalAssets = 'TODO';
     let name = 'TODO';
     const txCount = 'TODO';
     let creator = 'TODO';
     let createdOn = 'TODO';
     const powerConsuptionRatio = 'TODO';
+    const transactionsAll = smartContract.transactionsAll as {
+      _id: string;
+      k: string;
+      v: number;
+    }[];
+    const methodCalls = {};
+    transactionsAll.map((elem) => {
+      methodCalls[elem.k] = String(elem.v);
+    });
 
     projection.contract = smartContract;
 
@@ -66,7 +147,7 @@ export class SmartContractService {
         totalCalls: 'TODO',
         totalAddresses: 'TODO',
       },
-      topMethods: {},
+      methodCalls,
       topAddresses: {},
     };
 
