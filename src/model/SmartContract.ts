@@ -52,6 +52,9 @@ export class SmartContract {
 
   @Prop({ type: InternalMetaData })
   created: InternalMetaData;
+
+  @Prop()
+  recorded?: boolean;
 }
 
 export const SmartContractSchema = SchemaFactory.createForClass(SmartContract);

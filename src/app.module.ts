@@ -33,6 +33,10 @@ import { DashboardData, DashboardDataSchema } from './model/DashboardData';
 import { DashboardDataGenerator } from './jobs/DashboardDataGenerator';
 import { TransactionEventParser } from "./jobs/TransactionEventParser";
 import { TransactionEventService } from "./services/TransactionEventService";
+import { Token, TokenSchema } from "./model/Token";
+import { TokenService } from "./services/TokenService";
+import { TokenRecorder } from "./jobs/TokenRecorder";
+import { TokenController } from "./controllers/TokenController";
 
 const ENV = process.env.NODE_ENV;
 
@@ -57,6 +61,7 @@ const ENV = process.env.NODE_ENV;
       { name: SmartContract.name, schema: SmartContractSchema },
       { name: Account.name, schema: AccountSchema },
       { name: DashboardData.name, schema: DashboardDataSchema },
+      { name: Token.name, schema: TokenSchema },
     ]),
     HttpModule,
   ],
@@ -66,6 +71,7 @@ const ENV = process.env.NODE_ENV;
     TransactionController,
     DashboardController,
     SmartContractController,
+    TokenController,
   ],
   providers: [
     AppService,
@@ -85,6 +91,8 @@ const ENV = process.env.NODE_ENV;
     DashboardDataGenerator,
     TransactionEventParser,
     TransactionEventService,
+    TokenService,
+    TokenRecorder,
   ],
 })
 export class AppModule {}

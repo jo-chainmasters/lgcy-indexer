@@ -10,6 +10,7 @@ import { TransactionService } from './transaction.service';
 import { Abi } from '../model/contracts/CreateSmartContract/Abi';
 import { ContractType } from '../model/ContractType';
 import { LgcyService } from './lgcy.service';
+import { Token } from "../model/Token";
 
 const createKeccakHash = require('keccak');
 
@@ -26,6 +27,38 @@ export class SmartContractService {
 
   public async insertAll(smartContracts: SmartContract[]) {
     await this.smartContractModel.insertMany(smartContracts);
+  }
+
+  public async setRecorded(contract: SmartContract) {
+    await this.smartContractModel
+      .findOneAndUpdate(
+        {
+          address: contract.address,
+        },
+        {
+          $set: {
+            recorded: true,
+          },
+        },
+      )
+      .exec();
+  }
+
+  public async getNotRecorded(num = 10) {
+    return await this.smartContractModel
+      .find({
+        types: ContractType._20,
+        $or: [
+          {
+            recorded: false,
+          },
+          {
+            recorded: { $exists: false },
+          },
+        ],
+      })
+      .limit(num)
+      .exec();
   }
 
   public async getDetailsProjection(address: string) {

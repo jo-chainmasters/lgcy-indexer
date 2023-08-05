@@ -31,14 +31,19 @@ export class LgcyService {
   public async callContract(
     address: string,
     functionName: string,
-    params: any[],
+    params?: any[],
   ) {
     const contract = await this.lgcyWeb.contract().at(address);
     if (contract[functionName]) {
-      const result = await contract[functionName](...params).call({
-        from: address,
-      });
-      return result;
+      if(params) {
+        return await contract[functionName](...params).call({
+          from: address,
+        });
+      } else {
+        return await contract[functionName]().call({
+          from: address,
+        });
+      }
     } else {
       console.log(
         'Contract ' + address + ' does not have function ' + functionName,
