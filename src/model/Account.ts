@@ -1,7 +1,7 @@
 import { Transaction } from './Transaction';
-import { HydratedDocument } from 'mongoose';
-import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
-import { Types } from 'mongoose';
+import { HydratedDocument, Types } from "mongoose";
+import { Schema, Prop, SchemaFactory } from '@nestjs/mongoose';
+import { Schema as OrigSchema} from 'mongoose';
 
 export type AccountSchema = HydratedDocument<Account>;
 
@@ -14,7 +14,7 @@ export class Account {
   @Prop()
   firstSeenAtBlock: number;
   @Prop()
-  usdlBalance: Types.Decimal128;
+  usdlBalance: OrigSchema.Types.Decimal128;
   transactions?: Transaction[];
 }
 

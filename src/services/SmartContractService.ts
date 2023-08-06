@@ -475,7 +475,7 @@ export class SmartContractService {
     functionSelector: string,
     outputs: string[] = [],
   ): boolean {
-    if (smartContract.parsedAbi.functions[functionSelector]) {
+    if (smartContract.parsedAbi?.functions[functionSelector]) {
       const func = smartContract.parsedAbi.functions[functionSelector];
       if (outputs.length > 0) {
         for (let i = 0; i < outputs.length; i++) {

@@ -35,6 +35,7 @@ import { ContractCall } from '../model/ContractCall';
 import { SmartContractService } from './SmartContractService';
 import { SmartContract } from '../model/SmartContract';
 import { TransactionEvent } from '../model/TransactionEvent';
+import { NumberConverter } from '../utils/NumberConverter';
 
 @Injectable()
 export class TransactionService {
@@ -925,7 +926,10 @@ export class TransactionService {
       .limit(pageSize)
       .exec();
 
-    return { totalRecords, transactions };
+    return {
+      totalRecords,
+      transactions: this.mapTransactionsForHttpResponse(transactions),
+    };
   }
 
   public async findInTimeRange(start: Date, end: Date) {
@@ -954,6 +958,23 @@ export class TransactionService {
       .limit(pageSize)
       .exec();
 
-    return { totalRecords, transactions };
+    return {
+      totalRecords,
+      transactions: this.mapTransactionsForHttpResponse(transactions),
+    };
+  }
+
+  public mapTransactionForHttpResponse(transaction: Transaction) {
+    const transactionProjection: any = JSON.parse(JSON.stringify(transaction));
+    if (transaction.amount) {
+      transactionProjection.amount = NumberConverter.decimal128ToBigDecimal(
+        transaction.amount,
+      );
+    }
+    return transactionProjection;
+  }
+
+  public mapTransactionsForHttpResponse(transactions: Transaction[]) {
+    return transactions.map((e) => this.mapTransactionForHttpResponse(e));
   }
 }

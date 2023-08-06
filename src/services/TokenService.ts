@@ -37,6 +37,10 @@ export class TokenService {
     return await this.tokenModel.insertMany([token]);
   }
 
+  public async findAll() {
+    return await this.tokenModel.find({}).exec();
+  }
+
   public async getPage(
     skip: number,
     pageSize: number,

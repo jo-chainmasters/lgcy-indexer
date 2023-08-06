@@ -4,7 +4,7 @@ import { TransactionService } from '../services/transaction.service';
 import { AccountService } from '../services/AccountService';
 import bigDecimal = require('js-big-decimal');
 import { Account } from '../model/Account';
-import { Schema, Types } from 'mongoose';
+import { Schema } from 'mongoose';
 import { TransactionType } from '../model/TransactionType';
 import { Transaction } from '../model/Transaction';
 
@@ -93,12 +93,15 @@ export class AccountBalancerService {
       this.logger.debug('Found ' + transactions.length + ' for accounting');
 
     for (const transaction of transactions) {
-      let accountSender: Account = await this.accountService.getAccountSingle(
+      let accountSender: any = await this.accountService.getAccountSingle(
         transaction.sender,
       );
 
       if (!accountSender) {
-        accountSender = this.accountService.createAccount(transaction.sender, transaction);
+        accountSender = this.accountService.createAccount(
+          transaction.sender,
+          transaction,
+        );
       }
 
       // if(transaction.sender === "LTHJeXaPGwR533Hb36KcVvTKnrMpZdmk39" || transaction.receiver === "LTHJeXaPGwR533Hb36KcVvTKnrMpZdmk39") {
@@ -114,8 +117,10 @@ export class AccountBalancerService {
       );
 
       // let tmp;
-      if (transaction.type === TransactionType.TransferContract && transaction.successfull) {
-
+      if (
+        transaction.type === TransactionType.TransferContract &&
+        transaction.successfull
+      ) {
         // if(transaction.sender === "LTHJeXaPGwR533Hb36KcVvTKnrMpZdmk39" || transaction.receiver === "LTHJeXaPGwR533Hb36KcVvTKnrMpZdmk39") {
         //   this.logger.debug(transaction.sender + ' -> ' + transaction.receiver + ": " + transaction.amount.toString());
         // }
@@ -123,10 +128,14 @@ export class AccountBalancerService {
         const sendAmount = new bigDecimal(transaction.amount.toString());
         usdlBalanceSender = usdlBalanceSender.subtract(sendAmount);
 
-        let accountReceiver: Account =
-          await this.accountService.getAccountSingle(transaction.receiver);
+        let accountReceiver: any = await this.accountService.getAccountSingle(
+          transaction.receiver,
+        );
         if (!accountReceiver) {
-          accountReceiver = this.accountService.createAccount(transaction.receiver, transaction);
+          accountReceiver = this.accountService.createAccount(
+            transaction.receiver,
+            transaction,
+          );
         }
 
         // if(transaction.sender === "LTHJeXaPGwR533Hb36KcVvTKnrMpZdmk39" || transaction.receiver === "LTHJeXaPGwR533Hb36KcVvTKnrMpZdmk39") {
@@ -139,21 +148,22 @@ export class AccountBalancerService {
         usdlBalanceReceiver = usdlBalanceReceiver.add(
           new bigDecimal(transaction.amount.toString()),
         );
-        accountReceiver.usdlBalance = new Types.Decimal128(
-          usdlBalanceReceiver.getValue(),
-        );
+        accountReceiver.usdlBalance = usdlBalanceReceiver.getValue();
 
         // tmp = accountReceiver.usdlBalance;
         await this.accountService.save(accountReceiver);
       }
 
-      if (transaction.type === TransactionType.WithdrawBalanceContract && transaction.successfull) {
+      if (
+        transaction.type === TransactionType.WithdrawBalanceContract &&
+        transaction.successfull
+      ) {
         usdlBalanceSender = usdlBalanceSender.add(
           new bigDecimal(transaction.transactionInfo.withdrawAmount.toString()),
         );
       }
 
-      accountSender.usdlBalance = new Types.Decimal128(
+      accountSender.usdlBalance = new Schema.Types.Decimal128(
         usdlBalanceSender.getValue(),
       );
 

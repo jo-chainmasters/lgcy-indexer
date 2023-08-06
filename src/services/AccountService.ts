@@ -2,10 +2,11 @@ import { Injectable, Logger } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
 import { Account } from '../model/Account';
 import { InjectModel } from '@nestjs/mongoose';
-import { Block } from '../model/block.schema';
-import { Model, Types } from 'mongoose';
+import { Model, Schema, Types } from 'mongoose';
 import { Transaction } from '../model/Transaction';
-import bigDecimal from 'js-big-decimal';
+import bigDecimal = require('js-big-decimal');
+import { AccountProjection } from '../model/projections/AccountProjection';
+import { NumberConverter } from '../utils/NumberConverter';
 
 @Injectable()
 export class AccountService {
@@ -15,6 +16,19 @@ export class AccountService {
     private transactionService: TransactionService,
     @InjectModel(Account.name) private readonly accountModel: Model<Account>,
   ) {}
+
+  public createAccountProjection(
+    account: Account,
+    assets: { symbol: string; value: bigDecimal }[],
+  ): AccountProjection {
+    return {
+      address: account.address,
+      firstSeenAtDate: account.firstSeenAtDate,
+      firtSeenAtBlock: account.firstSeenAtBlock,
+      usdlBalance: new bigDecimal(account.usdlBalance.toString()),
+      assets,
+    };
+  }
 
   public async getAccount(address: string) {
     const account = await this.accountModel.findOne({ address }).exec();
@@ -41,7 +55,7 @@ export class AccountService {
   public createAccount(address: string, transaction: Transaction) {
     return {
       address,
-      usdlBalance: new Types.Decimal128('0'),
+      usdlBalance: '0',
       firstSeenAtBlock: transaction.blockNumber,
       firstSeenAtDate: transaction.timestamp,
     };
@@ -50,7 +64,7 @@ export class AccountService {
   public createGenesisWallet(address: string, balance: bigDecimal) {
     return {
       address,
-      usdlBalance: new Types.Decimal128(balance.getValue()),
+      usdlBalance: new Schema.Types.Decimal128(balance.getValue()),
       firstSeenAtBlock: -1,
       firstSeenAtDate: new Date(0),
     };
@@ -62,9 +76,7 @@ export class AccountService {
     sortField: string,
     sortOrder: number,
   ) {
-    const totalRecords = await this.accountModel
-      .count()
-      .exec();
+    const totalRecords = await this.accountModel.count().exec();
 
     const sort = {};
     sort[sortField] = sortOrder;
@@ -76,6 +88,23 @@ export class AccountService {
       .limit(pageSize)
       .exec();
 
-    return { totalRecords, accounts };
+    return {
+      totalRecords,
+      accounts: this.mapAccountsForHttpResponse(accounts),
+    };
+  }
+
+  public mapAccountForHttpResponse(account: Account) {
+    const accountProjection: any = JSON.parse(JSON.stringify(account));
+    if (account.usdlBalance) {
+      accountProjection.usdlBalance = NumberConverter.decimal128ToBigDecimal(
+        account.usdlBalance,
+      );
+    }
+    return accountProjection;
+  }
+
+  public mapAccountsForHttpResponse(accounts: Account[]) {
+    return accounts.map((e) => this.mapAccountForHttpResponse(e));
   }
 }

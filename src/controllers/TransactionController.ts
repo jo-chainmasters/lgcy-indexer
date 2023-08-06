@@ -1,5 +1,6 @@
 import { Controller, Get, Logger, Param, Query } from '@nestjs/common';
 import { TransactionService } from '../services/transaction.service';
+import bigDecimal from "js-big-decimal";
 
 @Controller('transactions')
 export class TransactionController {
@@ -31,6 +32,7 @@ export class TransactionController {
 
   @Get('byHash/:hash')
   public async getTransaction(@Param() params) {
-    return await this.transactionService.findByHash(params.hash);
+    const transaction = await this.transactionService.findByHash(params.hash);
+    return this.transactionService.mapTransactionForHttpResponse(transaction);
   }
 }
