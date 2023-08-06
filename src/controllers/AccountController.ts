@@ -33,10 +33,12 @@ export class AccountController {
         pow,
         bigDecimal.RoundingModes.HALF_DOWN,
       );
-      assets.push({
-        symbol: token.symbol,
-        value: value.getValue(),
-      });
+      if (value.compareTo(new bigDecimal(0)) > 0) {
+        assets.push({
+          symbol: token.symbol,
+          value: value.getValue(),
+        });
+      }
     }
 
     return this.accountService.createAccountProjection(account, assets);
