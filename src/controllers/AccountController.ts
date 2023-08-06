@@ -15,6 +15,10 @@ export class AccountController {
   @Get('account/:address')
   public async getAccount(@Param() params) {
     const account = await this.accountService.getAccount(params.address);
+    const accountChain = await this.accountService.getAccountFromChain(
+      params.address,
+    );
+    console.log(accountChain);
     const tokens = await this.tokenService.findAll();
     const assets = [];
     for (const token of tokens) {
@@ -41,7 +45,11 @@ export class AccountController {
       }
     }
 
-    return this.accountService.createAccountProjection(account, assets);
+    return this.accountService.createAccountProjection(
+      account,
+      accountChain,
+      assets,
+    );
   }
 
   @Get('accounts/page')

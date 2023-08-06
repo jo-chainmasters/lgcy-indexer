@@ -19,7 +19,7 @@ export class LgcyService {
   constructor(private readonly httpService: HttpService) {
     this.lgcyWeb = new Weblgcy({
       fullNode: 'https://fullnode.legacy.chainmasters.ninja',
-      solidityNode: 'https://fullnode.legacy.chainmasters.ninja',
+      solidityNode: 'https://soliditynode.legacy.chainmasters.ninja',
     });
   }
 
@@ -55,6 +55,11 @@ export class LgcyService {
   public async getBlockByNumber(num: number) {
     const blockHttp: any = await this.lgcyWeb.legacy.getBlockByNumber(num);
     return blockHttp;
+  }
+
+  public async getAccount(address: string) {
+    const accountHttp: any = await this.lgcyWeb.legacy.getAccount(address);
+    return accountHttp;
   }
 
   public async getBlockRange(start: number, count: number): Promise<any[]> {
