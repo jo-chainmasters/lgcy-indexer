@@ -59,9 +59,9 @@ export class DashboardDataService {
 
     return new DashboardData(
       currentBlock,
-      totalTransactions,
       totalAccounts,
       totalNodes,
+      totalTransactions,
       frozenLgcy,
       burntUsdl,
       this.getHourLabels(24, block.timestamp),
