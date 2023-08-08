@@ -945,14 +945,35 @@ export class TransactionService {
     pageSize: number,
     sortField: string,
     sortOrder: number,
+    filters?: { [key: string]: { matchMode: string; value: string } },
   ) {
-    const totalRecords = await this.transactionModel.count().exec();
-
     const sort = {};
     sort[sortField] = sortOrder;
 
+    const f = {};
+    if (filters) {
+      for (const key of Object.keys(filters)) {
+        const mode = filters[key].matchMode;
+        const value = filters[key].value;
+
+        switch (mode) {
+          case 'contains':
+            f[key] = RegExp('.*' + value + '.*', 'i');
+            break;
+          case 'startsWith':
+            f[key] = RegExp(value + '.*', 'i');
+            break;
+          case 'equals':
+            f[key] = value;
+            break;
+        }
+      }
+    }
+
+    const totalRecords = await this.transactionModel.count(f).exec();
+
     const transactions = await this.transactionModel
-      .find()
+      .find(f)
       .skip(skip)
       .sort(sort)
       .limit(pageSize)

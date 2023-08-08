@@ -18,7 +18,6 @@ export class AccountController {
     const accountChain = await this.accountService.getAccountFromChain(
       params.address,
     );
-    console.log(accountChain);
     const tokens = await this.tokenService.findAll();
     const assets = [];
     for (const token of tokens) {
