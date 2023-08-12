@@ -22,7 +22,7 @@ export class TransactionController {
   }
 
   @Get('page')
-  public async getTransactionPage(@Param() params, @Query() query) {
+  public async getTransactionPage(@Query() query) {
     const filters = {};
     for (const key of Object.keys(query)) {
       const paramValue = query[key] as string;

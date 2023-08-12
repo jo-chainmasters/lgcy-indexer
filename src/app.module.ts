@@ -37,6 +37,8 @@ import { Token, TokenSchema } from "./model/Token";
 import { TokenService } from "./services/TokenService";
 import { TokenRecorder } from "./jobs/TokenRecorder";
 import { TokenController } from "./controllers/TokenController";
+import { DebugController } from "./controllers/DebugController";
+import { PageService } from "./services/PageService";
 
 const ENV = process.env.NODE_ENV;
 
@@ -72,6 +74,7 @@ const ENV = process.env.NODE_ENV;
     DashboardController,
     SmartContractController,
     TokenController,
+    DebugController,
   ],
   providers: [
     AppService,
@@ -93,6 +96,7 @@ const ENV = process.env.NODE_ENV;
     TransactionEventService,
     TokenService,
     TokenRecorder,
+    PageService,
   ],
 })
 export class AppModule {}

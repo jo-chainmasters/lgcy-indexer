@@ -36,6 +36,7 @@ import { SmartContractService } from './SmartContractService';
 import { SmartContract } from '../model/SmartContract';
 import { TransactionEvent } from '../model/TransactionEvent';
 import { NumberConverter } from '../utils/NumberConverter';
+import { PageService } from './PageService';
 
 @Injectable()
 export class TransactionService {
@@ -45,6 +46,7 @@ export class TransactionService {
     @InjectModel(Transaction.name)
     private readonly transactionModel: Model<Transaction>,
     private lgcyService: LgcyService,
+    private pageService: PageService,
   ) {
     this.logger;
   }
@@ -937,6 +939,14 @@ export class TransactionService {
         timestamp: { $gte: start, $lt: end },
       })
       .exec();
+  }
+
+  public async getTstPage(query) {
+    const page = await this.pageService.getPage(this.transactionModel, query);
+    if (page.data) {
+      page.data = this.mapTransactionsForHttpResponse(page.data);
+    }
+    return page;
   }
 
   public async getPage(
