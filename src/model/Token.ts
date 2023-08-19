@@ -11,6 +11,10 @@ export class Token {
   @Prop()
   public name: string;
   @Prop()
+  public description: string;
+  @Prop()
+  public url: string;
+  @Prop()
   public tokenId: string;
   @Prop()
   public symbol: string;

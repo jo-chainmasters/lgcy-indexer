@@ -5,6 +5,8 @@ import { Model } from 'mongoose';
 import { SmartContract } from '../model/SmartContract';
 import { ContractType } from '../model/ContractType';
 import { LgcyService } from './lgcy.service';
+import { Transaction } from '../model/Transaction';
+import { AssetIssueContract } from '../model/contracts/AssetIssueContract/AssetIssueContract';
 
 @Injectable()
 export class TokenService {
@@ -30,6 +32,20 @@ export class TokenService {
     token.tokenId = smartContract.address;
     token.symbol = symbol;
     token.decimals = decimals;
+    return token;
+  }
+
+  public createLrc10Token(transaction: Transaction) {
+    const assetIssueContract =
+      transaction.transactionValue as AssetIssueContract;
+    const token = new Token();
+    token.type = ContractType._10;
+    token.name = assetIssueContract.name;
+    token.tokenId = transaction.transactionInfo.assetIssueID;
+    token.symbol = assetIssueContract.abbr;
+    token.decimals = assetIssueContract.precision;
+    token.description = assetIssueContract.description;
+    token.url = assetIssueContract.url;
     return token;
   }
 

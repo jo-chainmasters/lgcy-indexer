@@ -711,6 +711,25 @@ export class TransactionService {
       .exec();
   }
 
+  public async findWithoutLrc10Recorded(num = 10) {
+    return await this.transactionModel
+      .find({
+        type: 'AssetIssueContract',
+        successfull: true,
+        'parserInfo.transactionInfo': true,
+        $or: [
+          {
+            'parserInfo.lrc10Recorded': false,
+          },
+          {
+            'parserInfo.lrc10Recorded': { $exists: false },
+          },
+        ],
+      })
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+  }
   public async findWithoutCreateSmartContractAnalyzing(num = 10) {
     return await this.transactionModel
       .find({
@@ -788,7 +807,7 @@ export class TransactionService {
         ? this.lgcyService.hexToUtf8(data.resMessage)
         : undefined,
       assetIssueID: data.assetIssueID
-        ? this.lgcyService.hexToUtf8(data.assetIssueID)
+        ? data.assetIssueID
         : undefined,
       withdrawAmount: data.withdraw_amount,
       unfreezeAmount: data.unfreeze_amount,
