@@ -2,6 +2,7 @@ import { Controller, Get, Param, Query } from '@nestjs/common';
 import { AccountService } from '../services/AccountService';
 import { LgcyService } from '../services/lgcy.service';
 import { TokenService } from '../services/TokenService';
+import { ContractType } from '../model/ContractType';
 import bigDecimal = require('js-big-decimal');
 
 @Controller()
@@ -21,26 +22,42 @@ export class AccountController {
     const tokens = await this.tokenService.findAll();
     const assets = [];
     for (const token of tokens) {
-      const result = await this.lgcyService.callContract(
-        token.tokenId,
-        'balanceOf',
-        [account.address],
-      );
-      let powStr = '1';
-      for (let i = 0; i <= token.decimals - 1; i++) {
-        powStr += '0';
-      }
+      if (token.type === ContractType._20) {
+        const result = await this.lgcyService.callContract(
+          token.tokenId,
+          'balanceOf',
+          [account.address],
+        );
+        let powStr = '1';
+        for (let i = 0; i <= token.decimals - 1; i++) {
+          powStr += '0';
+        }
 
-      const pow = new bigDecimal(powStr);
-      const value = new bigDecimal(result).divide(
-        pow,
-        bigDecimal.RoundingModes.HALF_DOWN,
-      );
-      if (value.compareTo(new bigDecimal(0)) > 0) {
-        assets.push({
-          symbol: token.symbol,
-          value: value.getValue(),
-        });
+        const pow = new bigDecimal(powStr);
+        const value = new bigDecimal(result).divide(
+          pow,
+          bigDecimal.RoundingModes.HALF_DOWN,
+        );
+        if (value.compareTo(new bigDecimal(0)) > 0) {
+          assets.push({
+            symbol: token.symbol,
+            value: value.getValue(),
+          });
+        }
+      }
+      if (token.type === ContractType._10) {
+        const t = account.tokenBalances[token.tokenId];
+        if (t) {
+          let tokenPow = new bigDecimal(1);
+          for (let i = 0; i <= token.decimals - 1; i++) {
+            tokenPow = tokenPow.multiply(new bigDecimal(10));
+          }
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
+          let tVal = new bigDecimal(t.value);
+          tVal = tVal.divide(tokenPow, token.decimals);
+          assets.push({ symbol: token.symbol, value: tVal.getValue() });
+        }
       }
     }
 

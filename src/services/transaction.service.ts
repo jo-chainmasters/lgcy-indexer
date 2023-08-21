@@ -730,6 +730,27 @@ export class TransactionService {
       .limit(num)
       .exec();
   }
+
+  public async findWithoutLrc10Balanced(num = 10) {
+    return await this.transactionModel
+      .find({
+        type: 'TransferAssetContract',
+        successfull: true,
+        'parserInfo.transactionInfo': true,
+        $or: [
+          {
+            'parserInfo.lrc10Balanced': false,
+          },
+          {
+            'parserInfo.lrc10Balanced': { $exists: false },
+          },
+        ],
+      })
+      .sort({ blockNumber: 1 })
+      .limit(num)
+      .exec();
+  }
+
   public async findWithoutCreateSmartContractAnalyzing(num = 10) {
     return await this.transactionModel
       .find({

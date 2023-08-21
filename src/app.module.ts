@@ -40,6 +40,7 @@ import { TokenController } from "./controllers/TokenController";
 import { DebugController } from "./controllers/DebugController";
 import { PageService } from "./services/PageService";
 import { Lrc10Recorder } from "./jobs/Lrc10Recorder";
+import { Lrc10Balancer } from "./jobs/Lrc10Balancer";
 
 const ENV = process.env.NODE_ENV;
 
@@ -99,6 +100,7 @@ const ENV = process.env.NODE_ENV;
     TokenRecorder,
     PageService,
     Lrc10Recorder,
+    Lrc10Balancer,
   ],
 })
 export class AppModule {}

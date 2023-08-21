@@ -1,8 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { TransactionService } from './transaction.service';
-import { Account } from '../model/Account';
+import { Account, TokenBalances } from '../model/Account';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model, Schema, Types } from 'mongoose';
+import { Model, Schema as OrigSchema, Schema, Types } from 'mongoose';
 import { Transaction } from '../model/Transaction';
 import bigDecimal = require('js-big-decimal');
 import { AccountProjection } from '../model/projections/AccountProjection';
@@ -92,13 +92,120 @@ export class AccountService {
     );
   }
 
-  public createAccount(address: string, transaction: Transaction) {
+  public createAccountByTransaction(address: string, transaction: Transaction) {
     return {
       address,
       usdlBalance: '0',
       firstSeenAtBlock: transaction.blockNumber,
       firstSeenAtDate: transaction.timestamp,
     };
+  }
+
+  public createAccount(
+    address: string,
+    firstSeenAtBlock: number,
+    firstSeenAtDate: Date,
+  ): Account {
+    return {
+      address,
+      firstSeenAtDate,
+      firstSeenAtBlock,
+    };
+  }
+
+  public async calcLrcTransfer(
+    sender: string,
+    receiver: string,
+    tokenId: string,
+    amount: bigDecimal,
+    blockNumber: number,
+    blockTimestamp: Date,
+  ) {
+    let senderAccount: Account;
+    let tokenBalanceSender: bigDecimal;
+
+    if (sender) {
+      senderAccount = await this.accountModel
+        .findOne({
+          address: sender,
+        })
+        .exec();
+
+      if (!senderAccount) {
+        senderAccount = this.createAccount(sender, blockNumber, blockTimestamp);
+      }
+      if (!senderAccount.tokenBalances) {
+        senderAccount.tokenBalances = {};
+      }
+      if (!senderAccount.tokenBalances[tokenId]) {
+        senderAccount.tokenBalances[tokenId] = new bigDecimal(0);
+      }
+      tokenBalanceSender = new bigDecimal(
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        //@ts-ignore
+        senderAccount.tokenBalances[tokenId].value,
+      );
+    }
+
+    let receiverAccount: Account = await this.accountModel
+      .findOne({
+        address: receiver,
+      })
+      .exec();
+    if (!receiverAccount) {
+      receiverAccount = this.createAccount(
+        receiver,
+        blockNumber,
+        blockTimestamp,
+      );
+    }
+
+    if (!receiverAccount.tokenBalances) {
+      receiverAccount.tokenBalances = {};
+    }
+    if (!receiverAccount.tokenBalances[tokenId]) {
+      receiverAccount.tokenBalances[tokenId] = new bigDecimal('0');
+    }
+
+    let tokenBalanceReceiver = new bigDecimal(
+      // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+      //@ts-ignore
+      receiverAccount.tokenBalances[tokenId].value,
+    );
+
+    if (sender) {
+      tokenBalanceSender = tokenBalanceSender.subtract(amount);
+      senderAccount.tokenBalances[tokenId] = tokenBalanceSender;
+      await this.updateTokenBalance(
+        senderAccount.address,
+        senderAccount.tokenBalances,
+      );
+    }
+    tokenBalanceReceiver = tokenBalanceReceiver.add(amount);
+    receiverAccount.tokenBalances[tokenId] = tokenBalanceReceiver;
+
+    await this.updateTokenBalance(
+      receiverAccount.address,
+      receiverAccount.tokenBalances,
+    );
+  }
+
+  public async updateTokenBalance(
+    address: string,
+    tokenBalance: { [key: string]: bigDecimal },
+  ) {
+    await this.accountModel
+      .updateOne(
+        {
+          address,
+        },
+        {
+          $set: {
+            tokenBalances: tokenBalance,
+          },
+        },
+      )
+      .exec();
   }
 
   public createGenesisWallet(address: string, balance: bigDecimal) {

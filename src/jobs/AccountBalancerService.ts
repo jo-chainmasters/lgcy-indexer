@@ -98,7 +98,7 @@ export class AccountBalancerService {
       );
 
       if (!accountSender) {
-        accountSender = this.accountService.createAccount(
+        accountSender = this.accountService.createAccountByTransaction(
           transaction.sender,
           transaction,
         );
@@ -132,7 +132,7 @@ export class AccountBalancerService {
           transaction.receiver,
         );
         if (!accountReceiver) {
-          accountReceiver = this.accountService.createAccount(
+          accountReceiver = this.accountService.createAccountByTransaction(
             transaction.receiver,
             transaction,
           );
