@@ -46,17 +46,19 @@ export class AccountController {
         }
       }
       if (token.type === ContractType._10) {
-        const t = account.tokenBalances[token.tokenId];
-        if (t) {
-          let tokenPow = new bigDecimal(1);
-          for (let i = 0; i <= token.decimals - 1; i++) {
-            tokenPow = tokenPow.multiply(new bigDecimal(10));
+        if (account.tokenBalances && account.tokenBalances[token.tokenId]) {
+          const t = account.tokenBalances[token.tokenId];
+          if (t) {
+            let tokenPow = new bigDecimal(1);
+            for (let i = 0; i <= token.decimals - 1; i++) {
+              tokenPow = tokenPow.multiply(new bigDecimal(10));
+            }
+            // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+            //@ts-ignore
+            let tVal = new bigDecimal(t.value);
+            tVal = tVal.divide(tokenPow, token.decimals);
+            assets.push({ symbol: token.symbol, value: tVal.getValue() });
           }
-          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-          //@ts-ignore
-          let tVal = new bigDecimal(t.value);
-          tVal = tVal.divide(tokenPow, token.decimals);
-          assets.push({ symbol: token.symbol, value: tVal.getValue() });
         }
       }
     }
